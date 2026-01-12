@@ -1,0 +1,18 @@
+Checks: >
+  bugprone-*,
+  clang-analyzer-*,
+  misc-const-correctness,
+  misc-redundant-expression,
+  readability-simplify-boolean-expr,
+  readability-redundant-control-flow
+
+CheckOptions:
+  - key: bugprone-sizeof-expression.WarnOnSizeOfIntegerExpression
+    value: true
+
+ExtraArgs:
+  - -std=gnu11
+
+HeaderFilterRegex: '^(include|kernel)/'
+
+WarningsAsErrors: ''
