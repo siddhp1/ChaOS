@@ -6,9 +6,14 @@ LDFLAGS = -T linker.ld
 
 # List source files here
 SRC = \
-  kernel/main.c \
+	arch/arm64/boot/entry.S \
+	arch/arm64/kernel/vectors.S \
+	arch/arm64/kernel/exception.c \
+	arch/arm64/kernel/cpu.c \
+	drivers/uart/uart.c \
+  kernel/printk.c \
   kernel/panic.c \
-  kernel/printk.c
+  kernel/main.c \
 
 OBJ = $(SRC:.c=.o)
 OBJ := $(OBJ:.S=.o)
