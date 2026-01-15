@@ -1,7 +1,7 @@
 ENTRY(_start)
 
 SECTIONS {
-    . = 0x40000000;
+    . = 0x00080000;
 
     .text : {
         *(.text.boot)

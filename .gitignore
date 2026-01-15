@@ -1,3 +1,9 @@
+# Disk image
+*.img
+
+# Firmware
+!start.elf
+
 # Object files
 *.elf
 *.o

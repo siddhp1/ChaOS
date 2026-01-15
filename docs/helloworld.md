@@ -1,16 +1,11 @@
 ### Requirements
 
 - Cross compiler (set in Makefile)
-- QEMU
+- RPI with USB-TTL serial adapter set up
 
 ### Commands
 
+You will need to modify this script for your environment.
 ```
-make clean
-
-make
-
-qemu-system-aarch64 -machine virt -cpu cortex-a53 -nographic -kernel kernel.elf
+./build-install.sh
 ```
-
-Use Ctrl+A then X to exit QEMU.
