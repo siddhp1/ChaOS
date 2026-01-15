@@ -9,6 +9,6 @@ void uart_init(void) {
 }
 
 void uart_putc(char c) {
-    while (UART_FR & TXFF);
-    UART_DR = c;
+  while (UART_FR & TXFF);
+  UART_DR = c;
 }
