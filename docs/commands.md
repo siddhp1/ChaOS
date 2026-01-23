@@ -1,21 +1,27 @@
 # Commands
 
-### Clean
+## Clean
+
 ```shell
 make clean
 ```
 
-### Build
+## Build
+
 aarch64-elf:
+
 ```shell
 make
 ```
+
 aarch64-linux:
+
 ```shell
 make TOOLCHAIN=aarch64-linux-gnu
 ```
 
-### Lint
+## Lint
+
 ```shell
 clang-tidy kernel/**/*.c -- \
   -ffreestanding -nostdlib -nostartfiles \
@@ -23,7 +29,8 @@ clang-tidy kernel/**/*.c -- \
   -Iinclude
 ```
 
-### Run QEMU
+## Run QEMU
+
 ```shell
-qemu-system-aarch64 -machine virt -cpu cortex-a53 -nographic -kernel kernel.elf
+qemu-system-aarch64 -machine virt -cpu cortex-a53 -m 512M -nographic -kernel kernel.elf
 ```
