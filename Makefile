@@ -16,11 +16,11 @@ SRC = \
 	kernel/main.c \
 	kernel/panic.c \
 	kernel/printk.c \
-	memory/heap.c \
-	memory/kmap.c \
-	memory/memory.c \
-	memory/page.c \
-	memory/physical.c
+	mm/heap.c \
+	mm/kmap.c \
+	mm/memory.c \
+	mm/page.c \
+	mm/phys.c
 
 OBJ = $(SRC:.c=.o)
 OBJ := $(OBJ:.S=.o)

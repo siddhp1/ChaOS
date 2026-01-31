@@ -17,6 +17,6 @@
 
 void setup_page_tables(void);
 void enable_mmu(uintptr_t ttbr0, uintptr_t ttbr1);
-void memory_init(void);
+void mmu_init(void);
 
 #endif

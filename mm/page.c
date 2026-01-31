@@ -1,17 +1,16 @@
-#include "memory/page.h"
+#include "mm/page.h"
 
 #include <stddef.h>
 
-#include "memory/physical.h"
+#include "mm/phys.h"
 
-static struct page_internal
-    pages[(PHYSICAL_END - PHYSICAL_START) >> PAGE_SHIFT];
+static struct page_internal pages[(PHYS_END - PHYS_START) >> PAGE_SHIFT];
 static size_t total_pages;
 
 struct page_internal* free_list;
 
 void page_init(void) {
-  total_pages = (physical_end - physical_start) >> PAGE_SHIFT;
+  total_pages = (phys_end - phys_start) >> PAGE_SHIFT;
 
   free_list = NULL;
   for (size_t i = 0; i < total_pages; i++) {
@@ -41,17 +40,17 @@ void free_page(struct page* page) {
   free_list = ptr;
 }
 
-uintptr_t page_to_physical(struct page* page) {
+uintptr_t page_to_phys(struct page* page) {
   struct page_internal* p = (struct page_internal*)page;
   size_t idx = (size_t)(p - pages);
-  return physical_start + (idx << PAGE_SHIFT);
+  return phys_start + (idx << PAGE_SHIFT);
 }
 
-struct page* physical_to_page(uintptr_t phys) {
-  if (phys < physical_start || phys >= physical_end) {
+struct page* phys_to_page(uintptr_t phys) {
+  if (phys < phys_start || phys >= phys_end) {
     return NULL;
   }
 
-  size_t idx = (phys - physical_start) >> PAGE_SHIFT;
+  size_t idx = (phys - phys_start) >> PAGE_SHIFT;
   return &pages[idx].pub;
 }

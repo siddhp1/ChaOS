@@ -22,8 +22,8 @@ struct page_internal {
 
 extern struct page_internal* free_list;
 
-uintptr_t page_to_physical(struct page* page);
-struct page* physical_to_page(uintptr_t phys);
+uintptr_t page_to_phys(struct page* page);
+struct page* phys_to_page(uintptr_t phys);
 
 void page_init(void);
 
