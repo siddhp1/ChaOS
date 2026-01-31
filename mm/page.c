@@ -3,7 +3,8 @@
 #include <stddef.h>
 
 #include "kernel/printk.h"
-#include "mm/phys.h"
+#include "page_internal.h"
+#include "phys.h"
 
 static struct page_internal pages[(PHYS_END - PHYS_START) >> PAGE_SHIFT];
 static size_t total_pages;

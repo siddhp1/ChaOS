@@ -1,4 +1,4 @@
-#include "mm/phys.h"
+#include "phys.h"
 
 uintptr_t phys_start;
 uintptr_t phys_end;
