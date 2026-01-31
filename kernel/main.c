@@ -21,9 +21,10 @@ void kernel_entry(void) {
 
   // Phase one
   uart_init();
-  exception_init();
+  printk("UART initialized\n");
 
-  printk("Hello OS!\n");
+  exception_init();
+  printk("Exceptions initialized\n");
 
   // Trigger a panic to test exception handling
   // volatile int* p = (int*)0xDEADBEEF;
@@ -32,15 +33,22 @@ void kernel_entry(void) {
 
   // Phase two
   memory_init();
+  printk("Memory initialized\n");
 
   // Test allocating and freeing a page
   struct page* page = alloc_page();
   void* virtual = kmap(page);
+  dump_free_pages();
+
   uintptr_t* vptr = (uintptr_t*)virtual;
   while ((uintptr_t)vptr < (uintptr_t)virtual + PAGE_SIZE) {
     *vptr++ = 0xAB;
   }
-  free_page(page);
+  dump_page(page);
 
+  free_page(page);
+  dump_free_pages();
+
+  printk("Tests complete\n");
   while (1) asm volatile("WFI");
 }

@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 
+#include "kernel/printk.h"
 #include "mm/phys.h"
 
 static struct page_internal pages[(PHYS_END - PHYS_START) >> PAGE_SHIFT];
@@ -53,4 +54,33 @@ struct page* phys_to_page(uintptr_t phys) {
 
   size_t idx = (phys - phys_start) >> PAGE_SHIFT;
   return &pages[idx].pub;
+}
+
+void dump_free_pages(void) {
+  size_t count = 0;
+  for (struct page_internal* p = free_list; p; p = p->next) {
+    count++;
+  }
+
+  printk("Free pages: ");
+  printk_hex_u64((uint64_t)count);
+  printk(" / ");
+  printk_hex_u64((uint64_t)total_pages);
+  printk("\n");
+}
+
+void dump_page(struct page* page) {
+  if (!page) {
+    printk("Page: (null)\n");
+    return;
+  }
+
+  uintptr_t phys = page_to_phys(page);
+  printk("Page: phys=");
+  printk_hex_u64((uint64_t)phys);
+  printk(" flags=");
+  printk_hex_u32(page->flags);
+  printk(" refcount=");
+  printk_hex_u32(page->refcount);
+  printk("\n");
 }

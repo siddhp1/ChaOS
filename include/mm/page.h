@@ -28,6 +28,6 @@ struct page* phys_to_page(uintptr_t phys);
 void page_init(void);
 
 void dump_free_pages(void);
-void dump_page(struct page*);
+void dump_page(struct page* page);
 
 #endif
