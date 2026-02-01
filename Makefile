@@ -10,10 +10,17 @@ SRC = \
 	arch/arm64/kernel/cpu.c \
 	arch/arm64/kernel/exception.c \
 	arch/arm64/kernel/vectors.S \
+	arch/arm64/mm/fault.c \
+	arch/arm64/mm/mmu.c \
 	drivers/uart/uart.c \
 	kernel/main.c \
 	kernel/panic.c \
 	kernel/printk.c \
+	mm/heap.c \
+	mm/kmap.c \
+	mm/memory.c \
+	mm/page.c \
+	mm/phys.c
 
 OBJ = $(SRC:.c=.o)
 OBJ := $(OBJ:.S=.o)
