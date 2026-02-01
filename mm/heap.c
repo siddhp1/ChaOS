@@ -1,7 +1,7 @@
-#include "memory/heap.h"
+#include "mm/heap.h"
 
-#include "memory/kmap.h"
-#include "memory/page.h"
+#include "mm/kmap.h"
+#include "mm/page.h"
 
 void* kmalloc(size_t size) {
   struct page* page = alloc_page();
