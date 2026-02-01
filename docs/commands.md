@@ -29,7 +29,7 @@ make DEBUG=1
 ## Lint
 
 ```shell
-clang-tidy kernel/**/*.c -- \
+clang-tidy $(find . -name '*.c' -o -name '*.h') -- \
   -ffreestanding -nostdlib -nostartfiles \
   -target aarch64-none-elf \
   -Iinclude
