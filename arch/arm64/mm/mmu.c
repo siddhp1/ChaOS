@@ -1,36 +1,55 @@
-#include "asm/mmu.h"
+#include "kernel/mmu.h"
 
 #include <stdint.h>
 
-#include "asm/pgtable.h"
-#include "asm/tlb.h"
+#include "kernel/printk.h"
+#include "pgtable.h"
+#include "tlb.h"
 
-static uint64_t l0_table[1024] __attribute__((aligned(0x1000)));
-static uint64_t l1_table[1024] __attribute__((aligned(0x1000)));
+// Identity mapping (TTBR0)
+static uint64_t l0_table[512] __attribute__((aligned(0x1000)));
+static uint64_t l1_table[512] __attribute__((aligned(0x1000)));
+
+// Higher-half mapping (TTBR1)
+static uint64_t l0_table_hi[512] __attribute__((aligned(0x1000)));
+static uint64_t l1_table_hi[512] __attribute__((aligned(0x1000)));
+static uint64_t l2_table_device[512] __attribute__((aligned(0x1000)));
 
 void setup_page_tables(void) {
-  for (int i = 0; i < 1024; i++) {
+  for (int i = 0; i < 512; i++) {
     l0_table[i] = 0;
     l1_table[i] = 0;
+    l0_table_hi[i] = 0;
+    l1_table_hi[i] = 0;
+    l2_table_device[i] = 0;
   }
 
-  for (int i = 0; i < NUM_KERNEL_BLOCKS; i++) {
-    uintptr_t phys = (uintptr_t)(i * PAGE_SIZE_2MB);
-    l1_table[i] = (phys & 0xFFFFFFFFFFE00000ULL) | PTE_VALID | PTE_AF |
-                  PTE_SH_INNER | PTE_ATTRINDX(0) |
-                  0;  // UXN cleared for kernel code
-  }
+  l1_table[0] =
+      (0x00000000ULL) | PTE_VALID | PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(0);
+  l1_table[1] =
+      (0x40000000ULL) | PTE_VALID | PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(1);
 
   uintptr_t l1_base = (uintptr_t)l1_table;
   l0_table[0] = (l1_base & 0x0000FFFFFFFFF000ULL) | PTE_VALID | PTE_TABLE;
+
+  for (int i = 0; i < 512; i++) {
+    uintptr_t phys = (uintptr_t)(i * L2_BLOCK_SIZE);
+    l2_table_device[i] = (phys & 0x0000FFFFFFE00000ULL) | PTE_VALID | PTE_AF |
+                         PTE_SH_INNER | PTE_ATTRINDX(0) | PTE_UXN | PTE_PXN;
+  }
+  uintptr_t l2_device_base = (uintptr_t)l2_table_device;
+  l1_table_hi[0] =
+      (l2_device_base & 0x0000FFFFFFFFF000ULL) | PTE_VALID | PTE_TABLE;
+  l1_table_hi[1] =
+      (PHYS_KERNEL_BASE) | PTE_VALID | PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(1);
+
+  uintptr_t l1_hi_base = (uintptr_t)l1_table_hi;
+  l0_table_hi[0] = (l1_hi_base & 0x0000FFFFFFFFF000ULL) | PTE_VALID | PTE_TABLE;
 
   asm volatile("dsb ishst" ::: "memory");
   asm volatile("isb");
 
   tlb_flush_all();
-
-  uintptr_t l0_base = (uintptr_t)l0_table;
-  asm volatile("msr TTBR1_EL1, %0" ::"r"(l0_base));
 }
 
 static inline void write_mair_el1(uint64_t val) {
@@ -58,16 +77,19 @@ void enable_mmu(uintptr_t ttbr0, uintptr_t ttbr1) {
 
   asm volatile("dsb ishst" ::: "memory");
   asm volatile("isb");
+
   tlb_flush_all();
 
   uint64_t sctlr;
   asm volatile("mrs %0, SCTLR_EL1" : "=r"(sctlr));
+
   sctlr |= (1 << 0) | (1 << 2) | (1 << 12);
   asm volatile("msr SCTLR_EL1, %0" ::"r"(sctlr));
+
   asm volatile("isb");
 }
 
-void memory_init(void) {
+void mmu_init(void) {
   setup_page_tables();
-  enable_mmu((uintptr_t)l0_table, (uintptr_t)l0_table);
+  enable_mmu((uintptr_t)l0_table, (uintptr_t)l0_table_hi);
 }

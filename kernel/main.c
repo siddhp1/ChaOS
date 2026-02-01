@@ -1,7 +1,7 @@
 #include <stdint.h>
 
-#include "asm/mmu.h"
 #include "kernel/cpu.h"
+#include "kernel/mmu.h"
 #include "kernel/printk.h"
 #include "kernel/uart.h"
 #include "memory/heap.h"
@@ -31,6 +31,7 @@ void kernel_entry(void) {
   // (void)x;
 
   // Phase two
+  mmu_init();
   memory_init();
 
   // Test allocating and freeing a page
@@ -40,6 +41,7 @@ void kernel_entry(void) {
   while ((uintptr_t)vptr < (uintptr_t) virtual + PAGE_SIZE) {
     *vptr++ = 0xAB;
   }
+
   free_page(page);
 
   while (1) asm volatile("WFI");

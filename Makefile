@@ -1,7 +1,7 @@
 TOOLCHAIN ?= aarch64-elf
 include toolchains/$(TOOLCHAIN).mk
 
-CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Iinclude -Iarch/arm64/include -MMD -MP
+CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Iinclude -MMD -MP
 LDFLAGS = -T linker.ld
 
 # List source files here

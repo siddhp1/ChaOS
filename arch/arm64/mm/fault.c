@@ -1,4 +1,4 @@
-#include "asm/fault.h"
+#include "fault.h"
 
 #include <stdint.h>
 
