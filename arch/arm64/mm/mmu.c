@@ -67,7 +67,7 @@ void enable_mmu(uintptr_t ttbr0, uintptr_t ttbr1) {
   asm volatile("isb");
 }
 
-void memory_init(void) {
+void mmu_init(void) {
   setup_page_tables();
   enable_mmu((uintptr_t)l0_table, (uintptr_t)l0_table);
 }

@@ -1,7 +1,7 @@
 #ifndef KMAP_H
 #define KMAP_H
 
-#include "memory/page.h"
+#include "mm/page.h"
 
 #define KERNEL_BASE 0xFFFF000000000000UL
 

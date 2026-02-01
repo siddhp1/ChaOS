@@ -1,4 +1,4 @@
-#include "kernel/exception.h"
+#include "exception.h"
 
 #include "kernel/panic.h"
 

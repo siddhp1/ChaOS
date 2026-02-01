@@ -15,19 +15,10 @@ struct page {
 struct page* alloc_page(void);
 void free_page(struct page*);
 
-struct page_internal {
-  struct page pub;
-  struct page_internal* next;
-};
-
-extern struct page_internal* free_list;
-
-uintptr_t page_to_physical(struct page* page);
-struct page* physical_to_page(uintptr_t phys);
-
-void page_init(void);
+uintptr_t page_to_phys(struct page* page);
+struct page* phys_to_page(uintptr_t phys);
 
 void dump_free_pages(void);
-void dump_page(struct page*);
+void dump_page(struct page* page);
 
 #endif
