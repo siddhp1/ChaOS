@@ -1,0 +1,53 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Kernel (QEMU, aarch64-elf)",
+      "type": "cppdbg",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/kernel.elf",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/opt/homebrew/bin/aarch64-elf-gdb",
+      "miDebuggerServerAddress": "localhost:1234",
+      "targetArchitecture": "arm64",
+      "stopAtEntry": true,
+      "externalConsole": false,
+      "setupCommands": [
+        {
+          "text": "set architecture aarch64"
+        },
+        {
+          "text": "set pagination off"
+        },
+        {
+          "text": "set disassemble-next-line on"
+        }
+      ]
+    },
+    {
+      "name": "Debug Kernel (QEMU, aarch64-linux)",
+      "type": "cppdbg",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/kernel.elf",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/aarch64-linux-gnu-gdb",
+      "miDebuggerServerAddress": "localhost:1234",
+      "targetArchitecture": "arm64",
+      "stopAtEntry": true,
+      "externalConsole": false,
+      "setupCommands": [
+        {
+          "text": "set architecture aarch64"
+        },
+        {
+          "text": "set pagination off"
+        },
+        {
+          "text": "set disassemble-next-line on"
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,11 @@ TOOLCHAIN ?= aarch64-elf
 include toolchains/$(TOOLCHAIN).mk
 
 CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Iinclude -MMD -MP
+DEBUG ?= true
+ifeq ($(DEBUG),true)
+CFLAGS += -g -O0 -fno-omit-frame-pointer
+endif
+
 LDFLAGS = -T linker.ld
 
 # List source files here
