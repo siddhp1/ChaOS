@@ -32,7 +32,7 @@
       "cwd": "${workspaceFolder}",
       "program": "${workspaceFolder}/kernel.elf",
       "MIMode": "gdb",
-      "miDebuggerPath": "/usr/bin/aarch64-linux-gnu-gdb",
+      "miDebuggerPath": "/usr/bin/gdb-multiarch",
       "miDebuggerServerAddress": "localhost:1234",
       "targetArchitecture": "arm64",
       "stopAtEntry": true,
