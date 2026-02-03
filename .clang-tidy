@@ -7,12 +7,14 @@ Checks: >
   readability-redundant-control-flow
 
 CheckOptions:
-  - key: bugprone-sizeof-expression.WarnOnSizeOfIntegerExpression
-    value: true
+
+- key: bugprone-sizeof-expression.WarnOnSizeOfIntegerExpression
+  value: true
 
 ExtraArgs:
-  - -std=gnu11
 
-HeaderFilterRegex: '^(include|kernel)/'
+- -std=gnu11
+
+HeaderFilterRegex: '^(include|kernel|mm|arch)/'
 
 WarningsAsErrors: ''

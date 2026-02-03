@@ -20,11 +20,17 @@ aarch64-linux:
 make TOOLCHAIN=aarch64-linux-gnu
 ```
 
+Debug builds:
+
+```shell
+make DEBUG=1
+```
+
 ## Lint
 
 ```shell
-clang-tidy kernel/**/*.c -- \
-  -ffreestanding -nostdlib -nostartfiles \
+clang-tidy $(find . -name '*.c' -o -name '*.h') -- \
+  -ffreestanding -nostdlib \
   -target aarch64-none-elf \
   -Iinclude
 ```
@@ -32,5 +38,12 @@ clang-tidy kernel/**/*.c -- \
 ## Run QEMU
 
 ```shell
-qemu-system-aarch64 -machine virt -cpu cortex-a53 -m 512M -nographic -kernel kernel.elf
+qemu-system-aarch64 \
+  -M virt \
+  -cpu cortex-a53 \
+  -m 512M \
+  -kernel kernel.elf \
+  -nographic
 ```
+
+Add `-S -s` when running gdb
