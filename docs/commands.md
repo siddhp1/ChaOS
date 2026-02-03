@@ -30,7 +30,7 @@ make DEBUG=1
 
 ```shell
 clang-tidy $(find . -name '*.c' -o -name '*.h') -- \
-  -ffreestanding -nostdlib -nostartfiles \
+  -ffreestanding -nostdlib \
   -target aarch64-none-elf \
   -Iinclude
 ```
