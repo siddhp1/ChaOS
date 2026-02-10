@@ -1,7 +1,7 @@
 #include <stdint.h>
 
-#include "asm/irq.h"
 #include "kernel/cpu.h"
+#include "kernel/irq.h"
 #include "kernel/printk.h"
 #include "kernel/uart.h"
 #include "mm/heap.h"

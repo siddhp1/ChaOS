@@ -1,6 +1,8 @@
-#include <asm/gic.h>
-#include <asm/irq.h>
-#include <asm/timer.h>
+#include "kernel/irq.h"
+
+#include "gic.h"
+#include "irq_internal.h"
+#include "timer.h"
 
 void irq_init(void) {
   gic_init();

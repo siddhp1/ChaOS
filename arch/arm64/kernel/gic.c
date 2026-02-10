@@ -1,4 +1,4 @@
-#include "asm/gic.h"
+#include "gic.h"
 
 #include <stdint.h>
 

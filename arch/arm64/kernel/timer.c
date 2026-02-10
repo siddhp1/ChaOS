@@ -1,4 +1,5 @@
-#include <asm/timer.h>
+#include "timer.h"
+
 #include <stdint.h>
 
 #include "kernel/printk.h"

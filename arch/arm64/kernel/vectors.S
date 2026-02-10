@@ -1,4 +1,4 @@
-#include "asm/context_offsets.h"
+#include "context_offsets.h"
 
 .section .text
 .global vectors
