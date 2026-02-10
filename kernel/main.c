@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include "kernel/cpu.h"
+#include "kernel/irq.h"
 #include "kernel/printk.h"
 #include "kernel/uart.h"
 #include "mm/heap.h"
@@ -26,10 +27,9 @@ void kernel_entry(void) {
   exception_init();
   printk("Exceptions initialized\n");
 
-  // Trigger a panic to test exception handling
-  // volatile int* p = (int*)0xDEADBEEF;
-  // volatile int x = *p;
-  // (void)x;
+  // Phase three
+  irq_init();
+  printk("IRQ initialized\n");
 
   // Phase two
   memory_init();
@@ -41,7 +41,7 @@ void kernel_entry(void) {
   dump_free_pages();
 
   uintptr_t* vptr = (uintptr_t*)virtual;
-  while ((uintptr_t)vptr < (uintptr_t) virtual + PAGE_SIZE) {
+  while ((uintptr_t)vptr < (uintptr_t)virtual + PAGE_SIZE) {
     *vptr++ = 0xAB;
   }
   dump_page(page);
