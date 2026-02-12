@@ -2,44 +2,41 @@
 
 #include <stddef.h>
 
-#include "kernel/context.h"
 #include "kernel/printk.h"
+#include "kernel/string.h"
+#include "mm/kmap.h"
 #include "mm/page.h"
+#include "task_internal.h"
 
-static uint64_t next_pid = 1;
-
-task_t* create_task(uintptr_t entry_point) {
-  task_t* task = (task_t*)alloc_page();
-  if (!task) {
-    printk("Failed to allocate task\n");
+void* alloc_stack(void) {
+  struct page* p = alloc_page();
+  if (!p) {
     return NULL;
   }
 
-  struct page* stack_page = alloc_page();
-  if (!stack_page) {
-    printk("Failed to allocate stack page for task\n");
-    free_page((struct page*)task);
+  void* va = kmap(p);
+  return va;  // Bottom of stack page
+}
+
+struct task* alloc_task(void) {
+  struct page* p = alloc_page();
+  if (!p) {
     return NULL;
   }
-  uintptr_t stack_top = page_to_phys(stack_page) + PAGE_SIZE;
 
-  task->stack_page = (uintptr_t)stack_page;
-  task->state = TASK_READY;
-  task->pid = next_pid++;
-  context_init(&task->context, entry_point, stack_top);
-  task->next = NULL;
+  struct task* t = (struct task*)kmap(p);
 
-  return task;
+  memset(t, 0, sizeof(*t));
+
+  return t;
 }
 
-void set_task_state(task_t* task, task_state_t new_state) {
-  if (task) {
-    task->state = new_state;
-  }
-}
+// TODO: Correct implementation
+// void destroy_task(struct task* task) {
+//   if (!task) {
+//     return;
+//   }
 
-void destroy_task(task_t* task) {
-  if (!task) return;
-  free_page((struct page*)task->stack_page);
-  free_page((struct page*)task);
-}
+//   free_page((struct page*)task->stack_page);
+//   free_page((struct page*)task->task_page);
+// }

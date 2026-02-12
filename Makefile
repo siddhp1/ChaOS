@@ -22,9 +22,10 @@ SRC = \
 	arch/arm64/mm/fault.c \
 	arch/arm64/mm/mmu.c \
 	drivers/uart/uart.c \
-	kernel/context.c \
+	kernel/kthread.c \
 	kernel/main.c \
 	kernel/panic.c \
+	kernel/pid.c \
 	kernel/printk.c \
 	kernel/scheduler.c \
 	kernel/string.c \
