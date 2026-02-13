@@ -1,7 +1,11 @@
 #include <stdint.h>
 
 #include "kernel/cpu.h"
+#include "kernel/irq.h"
+#include "kernel/kthread.h"
 #include "kernel/printk.h"
+#include "kernel/scheduler.h"
+#include "kernel/task.h"
 #include "kernel/uart.h"
 #include "mm/heap.h"
 #include "mm/kmap.h"
@@ -9,8 +13,30 @@
 #include "mm/mmu.h"
 #include "mm/page.h"
 
+#define DELAY_CYCLES 10000000
+
 extern uintptr_t bss_start;
 extern uintptr_t bss_end;
+
+extern void context_switch(struct cpu_context* a, struct cpu_context* b);
+
+static struct cpu_context boot_context;
+
+void thread_a(void* arg) {
+  while (1) {
+    printk("A\n");
+    for (int i = 0; i < DELAY_CYCLES; i++);
+    schedule();
+  }
+}
+
+void thread_b(void* arg) {
+  while (1) {
+    printk("B\n");
+    for (int i = 0; i < DELAY_CYCLES; i++);
+    schedule();
+  }
+}
 
 void kernel_entry(void) {
   // Zero out the BSS (static variables)
@@ -19,36 +45,28 @@ void kernel_entry(void) {
     *ptr++ = 0;
   }
 
-  // Phase one
   uart_init();
   printk("UART initialized\n");
 
   exception_init();
   printk("Exceptions initialized\n");
 
-  // Trigger a panic to test exception handling
-  // volatile int* p = (int*)0xDEADBEEF;
-  // volatile int x = *p;
-  // (void)x;
+  irq_init();
+  printk("IRQ initialized\n");
 
-  // Phase two
   memory_init();
   printk("Memory initialized\n");
 
-  // Test allocating and freeing a page
-  struct page* page = alloc_page();
-  void* virtual = kmap(page);
-  dump_free_pages();
+  scheduler_init();
+  printk("Scheduler initialized\n");
 
-  uintptr_t* vptr = (uintptr_t*)virtual;
-  while ((uintptr_t)vptr < (uintptr_t) virtual + PAGE_SIZE) {
-    *vptr++ = 0xAB;
-  }
-  dump_page(page);
+  struct task* t1 = kthread_create(thread_a, NULL);
+  struct task* t2 = kthread_create(thread_b, NULL);
 
-  free_page(page);
-  dump_free_pages();
+  // Schedule t1
+  current_task = t1;
+  t1->state = TASK_RUNNING;
+  context_switch(&boot_context, &t1->context);
 
-  printk("Tests complete\n");
   while (1) asm volatile("WFI");
 }

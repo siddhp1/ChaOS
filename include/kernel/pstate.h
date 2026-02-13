@@ -1,0 +1,19 @@
+#ifndef PSTATE_H
+#define PSTATE_H
+
+#define PSTATE_D_BIT (1UL << 9)
+#define PSTATE_A_BIT (1UL << 8)
+#define PSTATE_I_BIT (1UL << 7)
+#define PSTATE_F_BIT (1UL << 6)
+#define PSTATE_DAIF_MASK \
+  (PSTATE_D_BIT | PSTATE_A_BIT | PSTATE_I_BIT | PSTATE_F_BIT)
+
+#define PSTATE_EL1h (0b0101UL)
+#define PSTATE_EL1t (0b0100UL)
+
+#define PSTATE_AARCH64 (0UL << 4)
+
+#define PSTATE_KERNEL_INIT \
+  (PSTATE_DAIF_MASK | PSTATE_EL1h | PSTATE_EL1t | PSTATE_AARCH64)
+
+#endif

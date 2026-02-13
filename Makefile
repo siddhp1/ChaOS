@@ -1,7 +1,7 @@
 TOOLCHAIN ?= aarch64-elf
 include toolchains/$(TOOLCHAIN).mk
 
-CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Iinclude -MMD -MP
+CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Iinclude -MMD -MP -mgeneral-regs-only -Iarch/arm64/include
 DEBUG ?= true
 ifeq ($(DEBUG),true)
 CFLAGS += -g -O0 -fno-omit-frame-pointer
@@ -12,15 +12,24 @@ LDFLAGS = -T linker.ld
 # List source files here
 SRC = \
 	arch/arm64/boot/entry.S \
+	arch/arm64/kernel/context_switch.S \
 	arch/arm64/kernel/cpu.c \
 	arch/arm64/kernel/exception.c \
+	arch/arm64/kernel/gic.c \
+	arch/arm64/kernel/irq.c \
+	arch/arm64/kernel/timer.c \
 	arch/arm64/kernel/vectors.S \
 	arch/arm64/mm/fault.c \
 	arch/arm64/mm/mmu.c \
 	drivers/uart/uart.c \
+	kernel/kthread.c \
 	kernel/main.c \
 	kernel/panic.c \
+	kernel/pid.c \
 	kernel/printk.c \
+	kernel/scheduler.c \
+	kernel/string.c \
+	kernel/task.c \
 	mm/heap.c \
 	mm/kmap.c \
 	mm/memory.c \
