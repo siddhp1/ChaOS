@@ -11,14 +11,14 @@
 
 static irq_handler_t irq_table[MAX_IRQ];
 
-void irq_ack(uint32_t irq) { gic_eoi(irq); }
+void irq_ack(int32_t irq) { gic_eoi(irq); }
 
 void irq_disable(void) { asm volatile("msr daifset, #2" ::: "memory"); }
 
 void irq_enable(void) { asm volatile("msr daifclr, #2" ::: "memory"); }
 
-uint32_t irq_get_pending(void) {
-  uint32_t irq = gic_ack();
+int32_t irq_get_pending(void) {
+  int32_t irq = gic_ack();
 
   if (irq == 1023) {
     return -1;
@@ -28,7 +28,10 @@ uint32_t irq_get_pending(void) {
 }
 
 void irq_handler(void) {
-  uint32_t irq = irq_get_pending();
+  int32_t irq = irq_get_pending();
+  if (irq < 0) {
+    return;
+  }
 
   if (irq < MAX_IRQ && irq_table[irq]) {
     irq_table[irq](NULL);
@@ -47,7 +50,7 @@ void irq_init(void) {
   irq_enable();
 }
 
-void register_irq(int irq, irq_handler_t handler) {
+void register_irq(int32_t irq, irq_handler_t handler) {
   if (irq < MAX_IRQ) {
     irq_table[irq] = handler;
   }
