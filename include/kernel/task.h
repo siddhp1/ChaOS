@@ -3,25 +3,27 @@
 
 #include <stdint.h>
 
-#include "kernel/context.h"
+#include "kernel/cpu_context.h"
 
-typedef enum {
-  TASK_READY,
-  TASK_RUNNING,
-  TASK_BLOCKED,
-  TASK_ZOMBIE
-} task_state_t;
+enum task_state { TASK_READY, TASK_RUNNING, TASK_BLOCKED, TASK_ZOMBIE };
 
-typedef struct task {
-  task_state_t state;
-  uint32_t pid;
-  context_t context;
-  uintptr_t stack_page;
+struct task {
+  struct cpu_context context;
+
+  enum task_state state;
+  int32_t pid;
+
+  void (*fn)(void*);
+  void* arg;
+
+  uint64_t stack;
+
   struct task* next;
-} task_t;
+};
 
-task_t* create_task(uintptr_t entry_point);
-void set_task_state(task_t* task, task_state_t new_state);
-void destroy_task(task_t* task);
+void set_task_state(struct task* task, enum task_state new_state);
+
+// TODO: Correct implementation
+// void destroy_task(struct task* task);
 
 #endif

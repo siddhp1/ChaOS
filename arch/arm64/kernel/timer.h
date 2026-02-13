@@ -2,6 +2,6 @@
 #define TIMER_H
 
 void timer_init(void);
-void timer_interrupt(void);
+void timer_interrupt(void* unused);
 
 #endif
