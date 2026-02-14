@@ -15,8 +15,13 @@ static void kthread_entry(void) {
 
   current_task->fn(current_task->arg);
 
+  irq_disable();
+  current_task->state = TASK_ZOMBIE;
+  need_schedule = true;
+  irq_enable();
+
   while (1) {
-    schedule();
+    asm volatile("WFI");
   }
 }
 
@@ -43,6 +48,8 @@ struct task* kthread_create(void (*fn)(void*), void* arg) {
   t->arg = arg;
 
   t->stack = (uint64_t)stack_base;
+
+  t->irq_sp = (uint64_t)NULL;
 
   t->time_slice = DEFAULT_TIME_SLICE;
 
