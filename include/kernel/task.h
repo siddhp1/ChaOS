@@ -18,6 +18,9 @@ struct task {
 
   uint64_t stack;
 
+  // saved irq frame base (sp after sub sp, sp, #irq_frame_size)
+  uint64_t irq_sp;
+
   int32_t time_slice;
 
   struct task* next;

@@ -16,6 +16,6 @@ void scheduler_init(void);
 void scheduler_tick(void);
 void enqueue_task(struct task* task);
 void dequeue_task(struct task* task);
-void schedule(void);
+uint64_t scheduler_irq_exit(uint64_t irq_sp);
 
 #endif
