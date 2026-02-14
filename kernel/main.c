@@ -25,16 +25,14 @@ static struct cpu_context boot_context;
 void thread_a(void* arg) {
   while (1) {
     printk("A\n");
-    for (int i = 0; i < DELAY_CYCLES; i++);
-    schedule();
+    for (volatile int i = 0; i < DELAY_CYCLES; i++);
   }
 }
 
 void thread_b(void* arg) {
   while (1) {
     printk("B\n");
-    for (int i = 0; i < DELAY_CYCLES; i++);
-    schedule();
+    for (volatile int i = 0; i < DELAY_CYCLES; i++);
   }
 }
 
@@ -63,10 +61,8 @@ void kernel_entry(void) {
   struct task* t1 = kthread_create(thread_a, NULL);
   struct task* t2 = kthread_create(thread_b, NULL);
 
-  // Schedule t1
-  current_task = t1;
-  t1->state = TASK_RUNNING;
-  context_switch(&boot_context, &t1->context);
+  // TODO: Move out of main
+  context_switch(&boot_context, &current_task->context);
 
-  while (1) asm volatile("WFI");
+  while (1) asm volatile("WFI");  // Unreachable
 }
