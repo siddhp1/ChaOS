@@ -11,6 +11,7 @@
 extern struct task* ready_queue;
 extern struct task* current_task;
 extern volatile bool need_schedule;
+extern volatile uint64_t system_tick;
 
 void scheduler_init(void);
 void scheduler_tick(void);

@@ -5,6 +5,7 @@
 #include "irq_internal.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler.h"
+#include "kernel/sleep.h"
 
 #define TIMER_IRQ 27
 // TODO: Increase frequency
@@ -44,4 +45,7 @@ void timer_interrupt(void* unused) {
 
   printk("TICK\n");
   scheduler_tick();
+  system_tick++;
+  check_sleeping_tasks(&sleep_queue);
+  schedule();
 }

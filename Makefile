@@ -28,8 +28,10 @@ SRC = \
 	kernel/pid.c \
 	kernel/printk.c \
 	kernel/scheduler.c \
+	kernel/sleep.c \
 	kernel/string.c \
 	kernel/task.c \
+	kernel/wait.c \
 	mm/heap.c \
 	mm/kmap.c \
 	mm/memory.c \

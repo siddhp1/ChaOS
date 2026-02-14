@@ -17,6 +17,8 @@
 
 extern void context_switch(struct cpu_context* a, struct cpu_context* b);
 
+volatile uint64_t system_tick = 0;
+
 struct task* ready_queue = NULL;
 struct task* current_task = NULL;
 volatile bool need_schedule = false;
@@ -88,6 +90,19 @@ void dequeue_task(struct task* task) {
 struct task* get_next_task(void) {
   if (!ready_queue) {
     return NULL;
+  }
+}
+
+void schedule(void) {
+  if (!ready_queue) return;
+  if (current_task) {
+    if (current_task->state == TASK_RUNNING) {
+      current_task->state = TASK_READY;
+    }
+    if (current_task->state == TASK_READY) {
+      dequeue_task(current_task);
+      enqueue_task(current_task);
+    }
   }
 
   struct task* prev = current_task;
