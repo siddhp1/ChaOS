@@ -1,11 +1,14 @@
 #include "kernel/scheduler.h"
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "kernel/printk.h"
 #include "kernel/task.h"
 
 extern void context_switch(struct cpu_context* a, struct cpu_context* b);
+
+volatile uint64_t system_tick = 0;
 
 struct task* ready_queue = NULL;
 struct task* current_task = NULL;
@@ -16,6 +19,8 @@ void scheduler_init(void) {
 }
 
 void enqueue_task(struct task* task) {
+  task->next = NULL;
+
   if (!ready_queue) {
     ready_queue = task;
   } else {
@@ -52,9 +57,13 @@ void dequeue_task(struct task* task) {
 void schedule(void) {
   if (!ready_queue) return;
   if (current_task) {
-    current_task->state = TASK_READY;
-    dequeue_task(current_task);
-    enqueue_task(current_task);
+    if (current_task->state == TASK_RUNNING) {
+      current_task->state = TASK_READY;
+    }
+    if (current_task->state == TASK_READY) {
+      dequeue_task(current_task);
+      enqueue_task(current_task);
+    }
   }
   struct task* prev = current_task;
 
