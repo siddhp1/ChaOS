@@ -18,6 +18,8 @@ struct task {
 
   uint64_t stack;
 
+  int32_t time_slice;
+
   struct task* next;
 };
 

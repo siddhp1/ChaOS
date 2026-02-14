@@ -1,5 +1,6 @@
 #include "kernel/scheduler.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "kernel/printk.h"
@@ -9,10 +10,22 @@ extern void context_switch(struct cpu_context* a, struct cpu_context* b);
 
 struct task* ready_queue = NULL;
 struct task* current_task = NULL;
+volatile bool need_schedule = false;
 
 void scheduler_init(void) {
-  ready_queue = NULL;
-  current_task = NULL;
+}
+
+void scheduler_tick(void) {
+  if (!current_task) {
+    return;
+  }
+
+  current_task->time_slice--;
+
+  if (current_task->time_slice <= 0) {
+    current_task->time_slice = DEFAULT_TIME_SLICE;
+    need_schedule = true;
+  }
 }
 
 void enqueue_task(struct task* task) {

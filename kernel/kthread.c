@@ -44,6 +44,8 @@ struct task* kthread_create(void (*fn)(void*), void* arg) {
 
   t->stack = (uint64_t)stack_base;
 
+  t->time_slice = DEFAULT_TIME_SLICE;
+
   t->next = NULL;
 
   enqueue_task(t);
