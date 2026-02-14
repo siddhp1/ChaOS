@@ -4,6 +4,8 @@
 
 #include "irq_internal.h"
 #include "kernel/printk.h"
+#include "kernel/scheduler.h"
+#include "kernel/sleep.h"
 
 #define TIMER_IRQ 27
 #define TIMER_INTERVAL 10000000
@@ -27,6 +29,7 @@ void timer_interrupt(void* unused) {
                :
                : "r"((uint64_t)TIMER_INTERVAL)
                : "memory");
-
-  printk("TICK\n");
+  system_tick++;
+  check_sleeping_tasks(&sleep_queue);
+  schedule();
 }
