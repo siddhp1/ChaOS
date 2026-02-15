@@ -47,5 +47,4 @@ void timer_interrupt(void* unused) {
   scheduler_tick();
   system_tick++;
   check_sleeping_tasks(&sleep_queue);
-  schedule();
 }

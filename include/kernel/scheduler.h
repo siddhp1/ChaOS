@@ -13,6 +13,7 @@ extern struct task* current_task;
 extern volatile bool need_schedule;
 extern volatile uint64_t system_tick;
 
+void schedule(void);
 void scheduler_init(void);
 void scheduler_tick(void);
 void enqueue_task(struct task* task);

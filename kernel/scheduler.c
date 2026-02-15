@@ -6,7 +6,6 @@
 
 #include "kernel/irq.h"
 #include "kernel/kthread.h"
-#include "kernel/printk.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
 
@@ -15,15 +14,12 @@
 #define IRQ_OFF_ELR_SPSR (16 * 16)
 #define SPSR_EL1H (0x5)  // EL1h, interrupts unmasked
 
-extern void context_switch(struct cpu_context* a, struct cpu_context* b);
-
 volatile uint64_t system_tick = 0;
 
 struct task* ready_queue = NULL;
 struct task* current_task = NULL;
 volatile bool need_schedule = false;
 
-// TODO: Remove idle task skip
 static struct task* idle_task = NULL;
 
 void idle_thread(void* arg) { while (1); }
@@ -51,6 +47,10 @@ void scheduler_tick(void) {
 }
 
 void enqueue_task(struct task* task) {
+  if (!task) {
+    return;
+  }
+
   task->next = NULL;
 
   if (!ready_queue) {
@@ -88,38 +88,33 @@ void dequeue_task(struct task* task) {
 }
 
 struct task* get_next_task(void) {
-  if (!ready_queue) {
+  if (!idle_task) {
     return NULL;
   }
-}
 
-void schedule(void) {
-  if (!ready_queue) return;
-  if (current_task) {
-    if (current_task->state == TASK_RUNNING) {
-      current_task->state = TASK_READY;
-    }
-    if (current_task->state == TASK_READY) {
-      dequeue_task(current_task);
+  // If the current task is still running, make it runnable again
+  if (current_task && current_task->state == TASK_RUNNING) {
+    current_task->state = TASK_READY;
+    if (current_task != idle_task) {
       enqueue_task(current_task);
     }
   }
 
-  struct task* prev = current_task;
-  // TODO: Remove idle task skip
-  // Currently prevents the idle thread from getting enqueued
-  if (prev && prev->state == TASK_RUNNING && prev != idle_task) {
-    prev->state = TASK_READY;
-    dequeue_task(prev);
-    enqueue_task(prev);
+  struct task* next = ready_queue;
+  if (next) {
+    dequeue_task(next);
+  } else {
+    next = idle_task;
   }
 
-  struct task* next = ready_queue;
-  dequeue_task(next);
   next->state = TASK_RUNNING;
   current_task = next;
-
   return next;
+}
+
+void schedule(void) {
+  need_schedule = true;
+  asm volatile("WFI");
 }
 
 // IRQ-return scheduling
@@ -133,8 +128,9 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
   }
   need_schedule = false;
 
+  struct task* prev = current_task;
   struct task* next = get_next_task();
-  if (!next) {
+  if (!next || next == prev) {
     return irq_sp;
   }
 
