@@ -4,67 +4,67 @@
 
 #include "kernel/irq.h"
 
-void wait_queue_init(struct wait_queue* wq) { wq->head = NULL; }
+struct task* wait_queue = NULL;
 
-void enqueue_wait_task(struct wait_queue* wq, struct task* current_task) {
-  current_task->next = NULL;
+void enqueue_wait_task(struct task* task) {
+  task->next = NULL;
 
-  if (!wq->head) {
-    wq->head = current_task;
+  if (!wait_queue) {
+    wait_queue = task;
   } else {
-    struct task* last_task = wq->head;
+    struct task* last_task = wait_queue;
     while (last_task->next) {
       last_task = last_task->next;
     }
-    last_task->next = current_task;
+    last_task->next = task;
   }
 }
 
-void dequeue_wait_task(struct wait_queue* wq) {
-  if (!wq->head) return;
+void dequeue_wait_task(void) {
+  if (!wait_queue) return;
 
-  struct task* current_task = wq->head;
+  struct task* current_task = wait_queue;
   current_task->state = TASK_READY;
-  wq->head = wq->head->next;
+  wait_queue = wait_queue->next;
   current_task->next = NULL;
 }
 
-void wait_event(struct wait_queue* wq, struct task* current_task) {
+void wait_event(struct task* task) {
   irq_disable();
 
-  if (!current_task) {
+  if (!task) {
     irq_enable();
     return;
   }
 
-  current_task->state = TASK_BLOCKED;
-  enqueue_wait_task(wq, current_task);
+  task->state = TASK_BLOCKED;
+  enqueue_wait_task(task);
 
   irq_enable();
   schedule();
 }
 
-void wake_up(struct wait_queue* wq) {
+void wake_up(void) {
   irq_disable();
 
-  if (!wq->head) {
+  if (!wait_queue) {
     irq_enable();
     return;
   }
 
-  struct task* woken = wq->head;
-  dequeue_wait_task(wq);
+  struct task* woken = wait_queue;
+  dequeue_wait_task();
   enqueue_task(woken);
 
   irq_enable();
 }
 
-void wake_up_all(struct wait_queue* wq) {
+void wake_up_all(void) {
   irq_disable();
 
-  while (wq->head) {
-    struct task* woken = wq->head;
-    dequeue_wait_task(wq);
+  while (wait_queue) {
+    struct task* woken = wait_queue;
+    dequeue_wait_task();
     enqueue_task(woken);
   }
 
