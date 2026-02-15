@@ -1,30 +1,68 @@
 #include "kernel/scheduler.h"
 
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
-#include "kernel/printk.h"
+#include "kernel/irq.h"
+#include "kernel/kthread.h"
+#include "kernel/string.h"
 #include "kernel/task.h"
 
-extern void context_switch(struct cpu_context* a, struct cpu_context* b);
+// TODO: Sync with vectors.s
+#define IRQ_FRAME_SIZE (16 * 17)
+#define IRQ_OFF_ELR_SPSR (16 * 16)
+#define SPSR_EL1H (0x5)  // EL1h, interrupts unmasked
+
+volatile uint64_t system_tick = 0;
 
 struct task* ready_queue = NULL;
 struct task* current_task = NULL;
+volatile bool need_schedule = false;
+
+static struct task* idle_task = NULL;
+
+void idle_thread(void* arg) { while (1); }
 
 void scheduler_init(void) {
-  ready_queue = NULL;
-  current_task = NULL;
+  idle_task = kthread_create(idle_thread, NULL);
+
+  idle_task->state = TASK_RUNNING;
+  current_task = idle_task;
+
+  need_schedule = false;
+}
+
+void scheduler_tick(void) {
+  if (!current_task) {
+    return;
+  }
+
+  current_task->time_slice--;
+
+  if (current_task->time_slice <= 0) {
+    current_task->time_slice = DEFAULT_TIME_SLICE;
+    need_schedule = true;
+  }
 }
 
 void enqueue_task(struct task* task) {
+  if (!task) {
+    return;
+  }
+
+  task->next = NULL;
+
   if (!ready_queue) {
     ready_queue = task;
-  } else {
-    struct task* last_task = ready_queue;
-    while (last_task->next) {
-      last_task = last_task->next;
-    }
-    last_task->next = task;
+    return;
   }
+
+  struct task* last_task = ready_queue;
+  while (last_task->next) {
+    last_task = last_task->next;
+  }
+  last_task->next = task;
 }
 
 void dequeue_task(struct task* task) {
@@ -49,19 +87,66 @@ void dequeue_task(struct task* task) {
   }
 }
 
-void schedule(void) {
-  if (!ready_queue) return;
-  if (current_task) {
+struct task* get_next_task(void) {
+  if (!idle_task) {
+    return NULL;
+  }
+
+  // If the current task is still running, make it runnable again
+  if (current_task && current_task->state == TASK_RUNNING) {
     current_task->state = TASK_READY;
-    dequeue_task(current_task);
-    enqueue_task(current_task);
+    if (current_task != idle_task) {
+      enqueue_task(current_task);
+    }
   }
-  struct task* prev = current_task;
 
-  current_task = ready_queue;
+  struct task* next = ready_queue;
+  if (next) {
+    dequeue_task(next);
+  } else {
+    next = idle_task;
+  }
+
+  next->state = TASK_RUNNING;
+  current_task = next;
+  return next;
+}
+
+void schedule(void) {
+  need_schedule = true;
+  asm volatile("WFI");
+}
+
+// IRQ-return scheduling
+uint64_t scheduler_irq_exit(uint64_t irq_sp) {
   if (current_task) {
-    current_task->state = TASK_RUNNING;
+    current_task->irq_sp = irq_sp;
   }
 
-  context_switch(&prev->context, &current_task->context);
+  if (!need_schedule) {
+    return irq_sp;
+  }
+  need_schedule = false;
+
+  struct task* prev = current_task;
+  struct task* next = get_next_task();
+  if (!next || next == prev) {
+    return irq_sp;
+  }
+
+  if (next->irq_sp == 0) {
+    // Create a synthetic IRQ frame on the new task's stack
+    uint64_t frame_sp = next->context.sp - IRQ_FRAME_SIZE;
+
+    memset((void*)frame_sp, 0, IRQ_FRAME_SIZE);
+
+    volatile uint64_t* elr_spsr =
+        (volatile uint64_t*)(frame_sp + IRQ_OFF_ELR_SPSR);
+    elr_spsr[0] = next->context.lr;
+    elr_spsr[1] = SPSR_EL1H;
+
+    next->irq_sp = frame_sp;
+  }
+
+  return next->irq_sp;
 }

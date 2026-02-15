@@ -5,7 +5,13 @@
 
 #include "kernel/cpu_context.h"
 
-enum task_state { TASK_READY, TASK_RUNNING, TASK_BLOCKED, TASK_ZOMBIE };
+enum task_state {
+  TASK_READY,
+  TASK_RUNNING,
+  TASK_BLOCKED,
+  TASK_ZOMBIE,
+  TASK_SLEEPING
+};
 
 struct task {
   struct cpu_context context;
@@ -17,6 +23,12 @@ struct task {
   void* arg;
 
   uint64_t stack;
+
+  // saved irq frame base (sp after sub sp, sp, #irq_frame_size)
+  uint64_t irq_sp;
+
+  int32_t time_slice;
+  uint64_t wakeup_tick;
 
   struct task* next;
 };

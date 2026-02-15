@@ -5,8 +5,10 @@
 #include "kernel/kthread.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler.h"
+#include "kernel/sleep.h"
 #include "kernel/task.h"
 #include "kernel/uart.h"
+#include "kernel/wait.h"
 #include "mm/heap.h"
 #include "mm/kmap.h"
 #include "mm/memory.h"
@@ -14,6 +16,7 @@
 #include "mm/page.h"
 
 #define DELAY_CYCLES 10000000
+#define SLEEP_TICKS 100
 
 extern uintptr_t bss_start;
 extern uintptr_t bss_end;
@@ -25,16 +28,38 @@ static struct cpu_context boot_context;
 void thread_a(void* arg) {
   while (1) {
     printk("A\n");
-    for (int i = 0; i < DELAY_CYCLES; i++);
-    schedule();
+    for (volatile int i = 0; i < DELAY_CYCLES; i++);
   }
 }
 
 void thread_b(void* arg) {
   while (1) {
     printk("B\n");
-    for (int i = 0; i < DELAY_CYCLES; i++);
-    schedule();
+    for (volatile int i = 0; i < DELAY_CYCLES; i++);
+  }
+}
+
+void thread_sleep_test(void* arg) {
+  while (1) {
+    printk("Going to sleep\n");
+    task_sleep(SLEEP_TICKS, current_task);
+    printk("Woke up!\n");
+  }
+}
+
+void thread_wait_test(void* arg) {
+  while (1) {
+    printk("Waiting for event\n");
+    wait_event(current_task);
+    printk("Got event!\n");
+  }
+}
+
+void thread_waker(void* arg) {
+  while (1) {
+    for (volatile int i = 0; i < DELAY_CYCLES * 5; i++);
+    printk("Waking up wait queue\n");
+    wake_up();
   }
 }
 
@@ -62,11 +87,12 @@ void kernel_entry(void) {
 
   struct task* t1 = kthread_create(thread_a, NULL);
   struct task* t2 = kthread_create(thread_b, NULL);
+  struct task* t3 = kthread_create(thread_sleep_test, NULL);
+  struct task* t4 = kthread_create(thread_wait_test, NULL);
+  struct task* t5 = kthread_create(thread_waker, NULL);
 
-  // Schedule t1
-  current_task = t1;
-  t1->state = TASK_RUNNING;
-  context_switch(&boot_context, &t1->context);
+  // TODO: Move out of main
+  context_switch(&boot_context, &current_task->context);
 
-  while (1) asm volatile("WFI");
+  while (1) asm volatile("WFI");  // Unreachable
 }
