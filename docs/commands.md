@@ -39,7 +39,7 @@ clang-tidy $(find . -name '*.c' -o -name '*.h') -- \
 
 ```shell
 qemu-system-aarch64 \
-  -M virt \
+  -M virt,gic-version=3 \
   -cpu cortex-a53 \
   -m 512M \
   -kernel kernel.elf \
