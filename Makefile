@@ -17,7 +17,6 @@ SRC = \
 	arch/arm64/kernel/exception.c \
 	arch/arm64/kernel/gic.c \
 	arch/arm64/kernel/irq.c \
-	arch/arm64/kernel/syscall.c \
 	arch/arm64/kernel/timer.c \
 	arch/arm64/kernel/vectors.S \
 	arch/arm64/mm/fault.c \

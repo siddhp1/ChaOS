@@ -1,4 +1,4 @@
-#include "libc.h"
+#include "libc/libc.h"
 
 int main() {
   write(1, "Hello World!\n", 21);
