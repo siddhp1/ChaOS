@@ -1,12 +1,14 @@
 #include "kernel/syscall.h"
 
+#include "kernel/exec.h"
+#include "kernel/fork.h"
+#include "kernel/scheduler.h"
 #include "kernel/trap.h"
 #include "syscall_handlers.h"
 
 static syscall_fn_t syscall_table[SYS_MAX] = {
-    [SYS_WRITE] = sys_write,
-    [SYS_EXIT] = sys_exit,
-    [SYS_GETPID] = sys_getpid,
+    [SYS_WRITE] = sys_write,   [SYS_EXIT] = sys_exit, [SYS_GETPID] = sys_getpid,
+    [SYS_EXECVE] = sys_execve, [SYS_FORK] = sys_fork, [SYS_READ] = sys_read,
 };
 
 long syscall_dispatch(long nr, long a0, long a1, long a2, long a3, long a4,
@@ -25,6 +27,9 @@ long syscall_dispatch(long nr, long a0, long a1, long a2, long a3, long a4,
 
 void syscall_entry(void* frame) {
   struct trapframe* tf = (struct trapframe*)frame;
+
+  // Store frame pointer for sys_execve and sys_fork
+  current_task->irq_sp = (uint64_t)frame;
 
   long nr = tf->x[8];
   long a0 = tf->x[0];

@@ -1,6 +1,5 @@
-#include "kernel/syscall.h"
 #include "libc.h"
 
-long write(int file_descriptor, const void* buffer, long length) {
-  return syscall(SYS_WRITE, file_descriptor, (long)buffer, length, 0, 0, 0);
+long write(int fd, const void *buf, long len) {
+  return syscall(SYS_WRITE, fd, (long)buf, len, 0, 0, 0);
 }
