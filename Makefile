@@ -35,6 +35,7 @@ SRC = \
 	kernel/sys_getpid.c \
 	kernel/sys_write.c \
 	kernel/task.c \
+	kernel/uthread.c \
 	kernel/wait.c \
 	mm/heap.c \
 	mm/kmap.c \
