@@ -12,6 +12,10 @@
 #define PTE_AF ((uint64_t)1 << 10)
 #define PTE_SH_INNER ((uint64_t)3 << 8)
 #define PTE_ATTRINDX(idx) ((uint64_t)(idx) << 2)
+#define PTE_AP_EL1_RW ((uint64_t)0 << 6)
+#define PTE_AP_EL0_RW ((uint64_t)1 << 6)
+#define PTE_AP_EL1_RO ((uint64_t)2 << 6)
+#define PTE_AP_EL0_RO ((uint64_t)3 << 6)
 #define PTE_PXN ((uint64_t)1 << 53)
 #define PTE_UXN ((uint64_t)1 << 54)
 

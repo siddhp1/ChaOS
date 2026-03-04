@@ -9,12 +9,14 @@ endif
 
 LDFLAGS = -T linker.ld
 
+# TODO: Switch to globbing here
 # List source files here
 SRC = \
 	arch/arm64/boot/entry.S \
 	arch/arm64/kernel/context_switch.S \
 	arch/arm64/kernel/cpu.c \
 	arch/arm64/kernel/exception.c \
+	arch/arm64/kernel/fault.c \
 	arch/arm64/kernel/gic.c \
 	arch/arm64/kernel/irq.c \
 	arch/arm64/kernel/timer.c \
@@ -39,6 +41,7 @@ SRC = \
 	kernel/sys_read.c \
 	kernel/sys_write.c \
 	kernel/task.c \
+	kernel/uaccess.c \
 	kernel/uthread.c \
 	kernel/vm.c \
 	kernel/wait.c \

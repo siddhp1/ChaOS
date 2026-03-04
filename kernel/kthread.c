@@ -36,19 +36,32 @@ struct task* kthread_create(void (*fn)(void*), void* arg) {
     return NULL;
   }
 
-  uint64_t stack_top = (uint64_t)stack_base + KSTACK_SIZE;
+  // TODO: Consider clearing the context struct
 
+  uint64_t stack_top = (uint64_t)stack_base + KSTACK_SIZE;
   t->context.sp = stack_top;
   t->context.lr = (uint64_t)kthread_entry;
 
+  t->state = TASK_READY;
+  t->pid = pid_alloc();
+
+  t->mode = TASK_MODE_KERNEL;
   t->fn = fn;
   t->arg = arg;
 
   t->stack = (uint64_t)stack_base;
-
   t->irq_sp = (uint64_t)NULL;
 
-  enqueue_task(t);
+  t->time_slice = DEFAULT_TIME_SLICE;
+  t->wakeup_tick = 0;
 
+  // Not used for kernel threads
+  t->user_entry = 0;
+  t->user_sp = 0;
+  t->ttbr0 = 0;
+
+  t->next = NULL;
+
+  enqueue_task(t);
   return t;
 }

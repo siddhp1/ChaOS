@@ -9,13 +9,16 @@ long sys_exit(long status, long a1, long a2, long a3, long a4, long a5) {
   (void)a3;
   (void)a4;
   (void)a5;
+  
+  // TODO: Add process exit status
+  // current_task->exit_status = status;
 
   if (current_task->ttbr0) {
     vm_destroy_user(current_task);
   }
 
   current_task->state = TASK_ZOMBIE;
-  need_schedule = true;
+  schedule();
 
-  while (1) asm volatile("wfi");
+  return 0;
 }

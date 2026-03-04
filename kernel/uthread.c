@@ -1,3 +1,5 @@
+#include "kernel/uthread.h"
+
 #include <stddef.h>
 #include <stdint.h>
 

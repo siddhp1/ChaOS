@@ -8,11 +8,12 @@
 #include "kernel/kthread.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
+#include "kernel/trap.h"
+#include "mm/mmu.h"
 
-// TODO: Sync with vectors.s
-#define IRQ_FRAME_SIZE (16 * 17)
-#define IRQ_OFF_ELR_SPSR (16 * 16)
-#define SPSR_EL1H (0x5)  // EL1h, interrupts unmasked
+// PSTATE bits
+#define SPSR_MODE_EL1H 0x5u
+#define SPSR_MODE_EL0T 0x0u
 
 volatile uint64_t system_tick = 0;
 
@@ -21,6 +22,21 @@ struct task* current_task = NULL;
 volatile bool need_schedule = false;
 
 static struct task* idle_task = NULL;
+
+static inline void build_first_frame(struct task* task,
+                                     struct trapframe* trapframe) {
+  memset(trapframe, 0, sizeof(*trapframe));
+
+  if (task_is_user(task)) {
+    trapframe->elr_el1 = task->user_entry;
+    trapframe->sp_el0 = task->user_sp;
+    trapframe->spsr_el1 = SPSR_MODE_EL0T;
+  } else {
+    // Kernel threads start at context.lr (kthread_entry)
+    trapframe->elr_el1 = task->context.lr;
+    trapframe->spsr_el1 = SPSR_MODE_EL1H;
+  }
+}
 
 void idle_thread(void* arg) { while (1); }
 
@@ -134,17 +150,14 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
     return irq_sp;
   }
 
+  mmu_switch_ttbr0(next->ttbr0);
+
   if (next->irq_sp == 0) {
-    // Create a synthetic IRQ frame on the new task's stack
-    uint64_t frame_sp = next->context.sp - IRQ_FRAME_SIZE;
+    uint64_t frame_sp = next->context.sp - sizeof(struct trapframe);
+    struct trapframe* trapframe = (struct trapframe*)frame_sp;
 
-    memset((void*)frame_sp, 0, IRQ_FRAME_SIZE);
-
-    volatile uint64_t* elr_spsr =
-        (volatile uint64_t*)(frame_sp + IRQ_OFF_ELR_SPSR);
-    elr_spsr[0] = next->context.lr;
-    elr_spsr[1] = SPSR_EL1H;
-
+    // TODO: Consider condensing
+    build_first_frame(next, trapframe);
     next->irq_sp = frame_sp;
   }
 

@@ -2,8 +2,8 @@
 .global vectors
 .align 11
 
-// IRQ stack frame layout (17 x 16-byte slots)
-.equ IRQ_FRAME_SIZE,   (16 * 17)
+// IRQ stack frame layout (18 x 16-byte slots)
+.equ IRQ_FRAME_SIZE,   (16 * 18)
 .equ IRQ_OFF_X0_X1,    (16 * 0)
 .equ IRQ_OFF_X2_X3,    (16 * 1)
 .equ IRQ_OFF_X4_X5,    (16 * 2)
@@ -21,6 +21,7 @@
 .equ IRQ_OFF_X28_X29,  (16 * 14)
 .equ IRQ_OFF_X30,      (16 * 15)
 .equ IRQ_OFF_ELR_SPSR, (16 * 16)
+.equ IRQ_OFF_SP_EL0,   (16 * 17)
 
 vectors:
     // EL1t
@@ -114,11 +115,17 @@ irq_el1h:
     mrs x1, spsr_el1
     stp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
 
+    mrs x19, sp_el0
+    str x19, [sp, #IRQ_OFF_SP_EL0]
+
     bl irq_handler
 
     mov x0, sp
     bl scheduler_irq_exit
     mov sp, x0
+
+    ldr x19, [sp, #IRQ_OFF_SP_EL0]
+    msr sp_el0, x19
 
     ldp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
     msr elr_el1, x0
@@ -176,13 +183,30 @@ sync_el0:
     mrs x1, spsr_el1
     stp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
 
-    mrs x0, esr_el1
-    lsr x0, x0, #26
-    cmp x0, #0x15
-    b.ne panic_sync
+    mrs x19, sp_el0
+    str x19, [sp, #IRQ_OFF_SP_EL0]
+
+    mrs x20, esr_el1
+    lsr x21, x20, #26
+    cmp x21, #0x15
+    b.eq sync_el0_svc
 
     mov x0, sp
+    mov x1, x20
+    bl el0_fault_handler
+    b sync_el0_schedule
+
+sync_el0_svc:
+    mov x0, sp
     bl syscall_entry
+
+sync_el0_schedule:
+    mov x0, sp
+    bl scheduler_irq_exit
+    mov sp, x0
+
+    ldr x19, [sp, #IRQ_OFF_SP_EL0]
+    msr sp_el0, x19
 
     ldp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
     msr elr_el1, x0
