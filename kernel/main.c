@@ -1,11 +1,14 @@
 #include <stdint.h>
 
 #include "kernel/cpu.h"
+#include "kernel/exec.h"
+#include "kernel/initramfs.h"
 #include "kernel/irq.h"
 #include "kernel/kthread.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler.h"
 #include "kernel/sleep.h"
+#include "kernel/string.h"
 #include "kernel/task.h"
 #include "kernel/uart.h"
 #include "kernel/wait.h"
@@ -82,14 +85,14 @@ void kernel_entry(void) {
   memory_init();
   printk("Memory initialized\n");
 
+  initramfs_init();
+  printk("Initramfs initialized\n");
+
   scheduler_init();
   printk("Scheduler initialized\n");
 
-  struct task* t1 = kthread_create(thread_a, NULL);
-  struct task* t2 = kthread_create(thread_b, NULL);
-  struct task* t3 = kthread_create(thread_sleep_test, NULL);
-  struct task* t4 = kthread_create(thread_wait_test, NULL);
-  struct task* t5 = kthread_create(thread_waker, NULL);
+  // Load PID 1 (bin/init) from initramfs
+  load_init();
 
   // TODO: Move out of main
   context_switch(&boot_context, &current_task->context);

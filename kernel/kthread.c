@@ -41,19 +41,12 @@ struct task* kthread_create(void (*fn)(void*), void* arg) {
   t->context.sp = stack_top;
   t->context.lr = (uint64_t)kthread_entry;
 
-  t->state = TASK_READY;
-  t->pid = pid_alloc();
-
   t->fn = fn;
   t->arg = arg;
 
   t->stack = (uint64_t)stack_base;
 
   t->irq_sp = (uint64_t)NULL;
-
-  t->time_slice = DEFAULT_TIME_SLICE;
-
-  t->next = NULL;
 
   enqueue_task(t);
 

@@ -4,3 +4,7 @@
 # Object files
 *.elf
 *.o
+
+# Executables
+*.bin
+*.img
