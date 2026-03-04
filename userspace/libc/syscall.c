@@ -1,7 +1,6 @@
 #include "libc.h"
 
-static inline long syscall(long nr, long a0, long a1, long a2, long a3, long a4,
-                           long a5) {
+long syscall(long nr, long a0, long a1, long a2, long a3, long a4, long a5) {
   register long x8 asm("x8") = nr;
   register long x0 asm("x0") = a0;
   register long x1 asm("x1") = a1;

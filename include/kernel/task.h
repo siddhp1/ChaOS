@@ -6,6 +6,8 @@
 
 #include "kernel/cpu_context.h"
 
+#define MAX_USER_PAGES 256
+
 enum task_mode { TASK_MODE_KERNEL, TASK_MODE_USER };
 
 enum task_state {
@@ -38,6 +40,9 @@ struct task {
   uint64_t user_entry;  // EL0 entry VA
   uint64_t user_sp;     // EL0 stack top VA
   uint64_t ttbr0;       // Per-task user page table root PA
+  uint64_t user_page_count;
+  struct task* parent;
+  struct page* user_pages[MAX_USER_PAGES];
 
   struct task* next;
 };

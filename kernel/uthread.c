@@ -3,25 +3,23 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "kernel/irq.h"
 #include "kernel/scheduler.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
+#include "kernel/vm.h"
+#include "mm/page.h"
 #include "pid.h"
 #include "task_internal.h"
 
 #define KSTACK_SIZE 4096
 
-struct task* uthread_create(uint64_t user_entry, uint64_t user_sp,
-                            uint64_t ttbr0) {
+int32_t utask_create(uint64_t user_entry, uint64_t user_sp, uint64_t ttbr0) {
   struct task* t = alloc_task();
-  if (!t) {
-    return NULL;
-  };
+  if (!t) return -1;
 
   void* stack_base = alloc_stack();
-  if (!stack_base) {
-    return NULL;
-  }
+  if (!stack_base) return -1;
 
   memset(&t->context, 0, sizeof(t->context));
 
@@ -43,10 +41,13 @@ struct task* uthread_create(uint64_t user_entry, uint64_t user_sp,
 
   t->user_entry = user_entry;
   t->user_sp = user_sp;
-  t->ttbr0 = ttbr0;
 
+  t->ttbr0 = ttbr0;
+  t->user_page_count = 0;
+
+  t->parent = NULL;
   t->next = NULL;
 
   enqueue_task(t);
-  return t;
+  return t->pid;
 }

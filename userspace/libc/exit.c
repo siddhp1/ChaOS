@@ -1,4 +1,3 @@
-#include "kernel/syscall.h"
 #include "libc.h"
 
 void exit(int status) {
