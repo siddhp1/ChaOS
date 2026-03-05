@@ -76,7 +76,7 @@ $(INITRAMFS_IMG): userspace/init.bin userspace/hello.bin
 # Convert initramfs binary blob into an object file that can be linked into the kernel
 $(INITRAMFS_OBJ): $(INITRAMFS_IMG)
 	$(OBJCOPY) -I binary -O elf64-littleaarch64 \
-		--rename-section .data=.initramfs,alloc,load,readonly,data \
+		--rename-section .data=.initramfs,alloc,load,readonly,data,contents \
 		$< $@
 
 kernel.elf: $(OBJ) $(INITRAMFS_OBJ)

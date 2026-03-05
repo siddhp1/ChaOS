@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "kernel/printk.h"
+#include "kernel/scheduler.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
 #include "pgtable.h"
@@ -63,8 +64,8 @@ uintptr_t mmu_create_user_ttbr0(void) {
   zero_table(l0);
   zero_table(l1);
 
-  l1[0] = (0x00000000ULL) | PTE_VALID | PTE_AF | PTE_SH_INNER |
-          PTE_ATTRINDX(0) | PTE_AP_EL1_RW | PTE_UXN | PTE_PXN;
+  // l1[0] = (0x00000000ULL) | PTE_VALID | PTE_AF | PTE_SH_INNER |
+  //         PTE_ATTRINDX(0) | PTE_AP_EL1_RW | PTE_UXN | PTE_PXN;
 
   l1[1] = (0x40000000ULL) | PTE_VALID | PTE_AF | PTE_SH_INNER |
           PTE_ATTRINDX(1) | PTE_AP_EL0_RW;
@@ -72,6 +73,13 @@ uintptr_t mmu_create_user_ttbr0(void) {
   l0[0] = make_table_desc(page_to_phys(l1_page));
 
   return page_to_phys(l0_page);
+}
+
+uintptr_t mmu_current_user_ttbr0(void) {
+  if (!current_task || !current_task->ttbr0) {
+    return kernel_ttbr0_root;
+  }
+  return current_task->ttbr0;
 }
 
 void mmu_switch_ttbr0(uintptr_t ttbr0) {

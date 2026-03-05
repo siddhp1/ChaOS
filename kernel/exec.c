@@ -20,10 +20,10 @@ long sys_execve(long filepath, long a1, long a2, long a3, long a4, long a5) {
   (void)a4;
   (void)a5;
 
-  const char *path = (const char *)filepath;
-  struct task *t = current_task;
+  const char* path = (const char*)filepath;
+  struct task* t = current_task;
 
-  struct initramfs_file *f = initramfs_lookup(path);
+  struct initramfs_file* f = initramfs_lookup(path);
   if (!f) {
     printk("exec: not found: ");
     printk(path);
@@ -43,14 +43,14 @@ long sys_execve(long filepath, long a1, long a2, long a3, long a4, long a5) {
 
   uint64_t va = USER_BASE;
   size_t remaining = f->size;
-  char *src = (char *)f->data;
+  char* src = (char*)f->data;
   t->user_page_count = 0;
 
   while (remaining > 0) {
-    struct page *p = alloc_page();
+    struct page* p = alloc_page();
     if (!p) return -1;
 
-    void *kptr = kmap(p);
+    void* kptr = kmap(p);
     memset(kptr, 0, PAGE_SIZE);
 
     size_t chunk = remaining < PAGE_SIZE ? remaining : PAGE_SIZE;
@@ -65,7 +65,7 @@ long sys_execve(long filepath, long a1, long a2, long a3, long a4, long a5) {
   }
 
   {
-    struct page *sp_page = alloc_page();
+    struct page* sp_page = alloc_page();
     if (!sp_page) return -1;
     memset(kmap(sp_page), 0, PAGE_SIZE);
     vm_map_user_page(t->ttbr0, USER_STACK_TOP - PAGE_SIZE, sp_page, VM_USER_RW);
@@ -76,20 +76,26 @@ long sys_execve(long filepath, long a1, long a2, long a3, long a4, long a5) {
   t->user_sp = USER_STACK_TOP;
   t->mode = TASK_MODE_USER;
 
-  asm volatile(
-      "msr ttbr0_el1, %0  \n"
-      "isb                \n"
-      "tlbi vmalle1is     \n"
-      "dsb ish            \n"
-      "isb                \n"
-      :
-      : "r"(t->ttbr0)
-      : "memory");
+  // asm volatile(
+  //     "msr ttbr0_el1, %0  \n"
+  //     "isb                \n"
+  //     "tlbi vmalle1is     \n"
+  //     "dsb ish            \n"
+  //     "isb                \n"
+  //     :
+  //     : "r"(t->ttbr0)
+  //     : "memory");
+
+  // asm volatile("msr ttbr0_el1, %0" : : "r"(t->ttbr0));
+  // asm volatile("isb");
+  // asm volatile("tlbi vmalle1is");
+  // asm volatile("dsb ish");
+  // asm volatile("isb");
 
   asm volatile("msr sp_el0, %0" : : "r"(USER_STACK_TOP));
 
   // Set up initial trapframe for the new user program
-  struct trapframe *tf = (struct trapframe *)t->irq_sp;
+  struct trapframe* tf = (struct trapframe*)t->irq_sp;
   if (tf) {
     for (int i = 0; i < 31; i++) tf->x[i] = 0;
     tf->elr_el1 = USER_BASE;
@@ -100,7 +106,7 @@ long sys_execve(long filepath, long a1, long a2, long a3, long a4, long a5) {
 }
 
 void load_init(void) {
-  struct task *init_task = alloc_task();
+  struct task* init_task = alloc_task();
   if (!init_task) {
     printk("Failed to allocate init task\n");
     return;

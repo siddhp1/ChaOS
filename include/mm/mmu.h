@@ -31,5 +31,6 @@ void mmu_init(void);
 uintptr_t mmu_kernel_ttbr0(void);
 uintptr_t mmu_create_user_ttbr0(void);
 void mmu_switch_ttbr0(uintptr_t ttbr0);
+uintptr_t mmu_current_user_ttbr0(void);
 
 #endif

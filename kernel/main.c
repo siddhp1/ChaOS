@@ -91,11 +91,13 @@ void kernel_entry(void) {
   scheduler_init();
   printk("Scheduler initialized\n");
 
+  struct task* t1 = kthread_create(thread_a, NULL);
+  struct task* t2 = kthread_create(thread_b, NULL);
+
+  context_switch(&boot_context, &current_task->context);
+
   // Load PID 1 (bin/init) from initramfs
   load_init();
-
-  // TODO: Move out of main
-  context_switch(&boot_context, &current_task->context);
 
   while (1) asm volatile("WFI");  // Unreachable
 }

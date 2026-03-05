@@ -179,6 +179,9 @@ sync_el0:
     stp x28, x29, [sp, #IRQ_OFF_X28_X29]
     str x30,      [sp, #IRQ_OFF_X30]
 
+    mov x0, #0
+    bl mmu_switch_ttbr0
+
     mrs x0, elr_el1
     mrs x1, spsr_el1
     stp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
@@ -204,6 +207,9 @@ sync_el0_schedule:
     mov x0, sp
     bl scheduler_irq_exit
     mov sp, x0
+
+    bl mmu_current_user_ttbr0
+    bl mmu_switch_ttbr0
 
     ldr x19, [sp, #IRQ_OFF_SP_EL0]
     msr sp_el0, x19
