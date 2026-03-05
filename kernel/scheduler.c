@@ -6,6 +6,7 @@
 
 #include "kernel/irq.h"
 #include "kernel/kthread.h"
+#include "kernel/printk.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
 #include "kernel/trap.h"
@@ -38,7 +39,11 @@ static inline void build_first_frame(struct task* task,
   }
 }
 
-void idle_thread(void* arg) { while (1); }
+void idle_thread(void* arg) {
+  while (1) {
+    // printk("idle!\n");
+  }
+}
 
 void scheduler_init(void) {
   idle_task = kthread_create(idle_thread, NULL);
@@ -150,8 +155,6 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
     return irq_sp;
   }
 
-  mmu_switch_ttbr0(next->ttbr0);
-
   if (next->irq_sp == 0) {
     uint64_t frame_sp = next->context.sp - sizeof(struct trapframe);
     struct trapframe* trapframe = (struct trapframe*)frame_sp;
@@ -159,6 +162,17 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
     // TODO: Consider condensing
     build_first_frame(next, trapframe);
     next->irq_sp = frame_sp;
+  }
+
+  // mmu_switch_ttbr0(next->ttbr0);
+
+  // Only switch TTBR0 for user tasks with a valid table.
+  if (task_is_user(next)) {
+    if (!next->ttbr0) {
+      printk("sched: user task missing ttbr0\n");
+      return irq_sp;
+    }
+    mmu_switch_ttbr0(next->ttbr0);
   }
 
   return next->irq_sp;

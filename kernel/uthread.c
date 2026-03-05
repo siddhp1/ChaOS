@@ -14,7 +14,7 @@
 
 #define KSTACK_SIZE 4096
 
-int32_t utask_create(uint64_t user_entry, uint64_t user_sp, uint64_t ttbr0) {
+int32_t uthread_create(uint64_t user_entry, uint64_t user_sp, uint64_t ttbr0) {
   struct task* t = alloc_task();
   if (!t) return -1;
 

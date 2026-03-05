@@ -6,7 +6,6 @@
 #include "task.h"
 
 // TODO: Consider returning PID
-struct task* uthread_create(uint64_t user_entry, uint64_t user_sp,
-                            uint64_t ttbr0);
+int32_t uthread_create(uint64_t user_entry, uint64_t user_sp, uint64_t ttbr0);
 
 #endif

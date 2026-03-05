@@ -84,10 +84,19 @@ uintptr_t mmu_current_user_ttbr0(void) {
 
 void mmu_switch_ttbr0(uintptr_t ttbr0) {
   uintptr_t root = ttbr0 ? ttbr0 : kernel_ttbr0_root;
+
+  root &= 0x0000FFFFFFFFF000ULL;
+  if (!root) {
+    printk("mmu_switch_ttbr0: invalid root\n");
+    return;
+  }
+
   write_ttbr0_el1(root);
-  asm volatile("dsb ishst" ::: "memory");
-  asm volatile("isb");
-  tlb_flush_all();
+  asm volatile("isb" ::: "memory");
+
+  // asm volatile("dsb ishst" ::: "memory");
+  // asm volatile("isb");
+  // tlb_flush_all();
 }
 
 void setup_page_tables(void) {

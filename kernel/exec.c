@@ -8,25 +8,43 @@
 #include "kernel/string.h"
 #include "kernel/task.h"
 #include "kernel/trap.h"
+#include "kernel/uthread.h"
 #include "kernel/vm.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
 #include "task_internal.h"
 
-long sys_execve(long filepath, long a1, long a2, long a3, long a4, long a5) {
-  (void)a1;
-  (void)a2;
-  (void)a3;
-  (void)a4;
-  (void)a5;
+#define EXEC_PATH_MAX 128
 
-  const char* path = (const char*)filepath;
+static long copy_user_cstr(char* dst, size_t dst_len, const char* user_src) {
+  if (!dst || !user_src || dst_len == 0) return -1;
+
+  for (size_t i = 0; i < dst_len; i++) {
+    char c = 0;
+    if (copy_from_user(&c, user_src + i, 1) < 0) {
+      return -1;
+    }
+    dst[i] = c;
+    if (c == '\0') return 0;
+  }
+
+  // Not null-terminated within limit
+  dst[dst_len - 1] = '\0';
+  return -1;
+}
+
+long execve(const char* kpath) {
+  if (!kpath || kpath[0] == '\0') {
+    return -1;
+  }
+
+  // const char* path = (const char*)filepath;
   struct task* t = current_task;
 
-  struct initramfs_file* f = initramfs_lookup(path);
+  struct initramfs_file* f = initramfs_lookup(kpath);
   if (!f) {
     printk("exec: not found: ");
-    printk(path);
+    printk(kpath);
     printk("\n");
     return -1;
   }
@@ -57,6 +75,7 @@ long sys_execve(long filepath, long a1, long a2, long a3, long a4, long a5) {
     memcpy(kptr, src, chunk);
 
     vm_map_user_page(t->ttbr0, va, p, VM_USER_RWX);
+
     t->user_pages[t->user_page_count++] = p;
 
     va += PAGE_SIZE;
@@ -92,28 +111,65 @@ long sys_execve(long filepath, long a1, long a2, long a3, long a4, long a5) {
   // asm volatile("dsb ish");
   // asm volatile("isb");
 
-  asm volatile("msr sp_el0, %0" : : "r"(USER_STACK_TOP));
+  // asm volatile("msr sp_el0, %0" : : "r"(USER_STACK_TOP));
 
-  // Set up initial trapframe for the new user program
-  struct trapframe* tf = (struct trapframe*)t->irq_sp;
-  if (tf) {
-    for (int i = 0; i < 31; i++) tf->x[i] = 0;
-    tf->elr_el1 = USER_BASE;
-    tf->spsr_el1 = 0;
-  }
+  // // Set up initial trapframe for the new user program
+  // struct trapframe* tf = (struct trapframe*)t->irq_sp;
+  // if (tf) {
+  //   for (int i = 0; i < 31; i++) tf->x[i] = 0;
+  //   tf->elr_el1 = USER_BASE;
+  //   tf->spsr_el1 = 0;
+  // }
+  t->irq_sp = 0;
 
   return 0;
 }
 
+long kernel_execve(const char* filepath) { return execve(filepath); }
+
+long sys_execve(long filepath, long a1, long a2, long a3, long a4, long a5) {
+  (void)a1;
+  (void)a2;
+  (void)a3;
+  (void)a4;
+  (void)a5;
+
+  const char* user_path = (const char*)filepath;
+  char kpath[EXEC_PATH_MAX];
+
+  if (copy_user_cstr(kpath, EXEC_PATH_MAX, user_path) < 0) {
+    return -1;
+  }
+
+  return execve(kpath);
+}
+
 void load_init(void) {
-  struct task* init_task = alloc_task();
+  struct task* init_task = kthread_create(NULL, NULL);
   if (!init_task) {
     printk("Failed to allocate init task\n");
     return;
   }
 
-  init_task->mode = TASK_MODE_KERNEL;
-
+  struct task* idle = current_task;
   current_task = init_task;
-  sys_execve((long)"bin/init", 0, 0, 0, 0, 0);
+
+  // int32_t pid = uthread_create(0, 0, 0);
+  // if (pid < 0) {
+  //   printk("Failed to allocate init task\n");
+  //   return;
+  // }
+
+  long rc = kernel_execve("bin/init");
+  current_task = idle;
+
+  if (rc < 0) {
+    printk("Failed to load init");
+    return;
+  }
+
+  // init_task->state = TASK_READY;
+  // enqueue_task(init_task);
+  need_schedule = true;
+  // sys_execve((long)"bin/init", 0, 0, 0, 0, 0);
 }
