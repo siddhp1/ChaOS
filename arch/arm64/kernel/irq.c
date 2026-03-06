@@ -33,6 +33,11 @@ void irq_handler(void) {
     return;
   }
 
+  // Debug: print which IRQ fired
+  // printk("IRQ: ");
+  // printk_hex_u32(irq);
+  // printk("\n");
+
   if (irq < MAX_IRQ && irq_table[irq]) {
     irq_table[irq](NULL);
   }

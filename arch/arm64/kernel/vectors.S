@@ -186,6 +186,10 @@ sync_el0:
     mrs x19, sp_el0
     str x19, [sp, #IRQ_OFF_SP_EL0]
 
+    // Enable interrupts now that we've saved state
+    // This allows preemption during syscalls
+    msr daifclr, #2
+
     mrs x20, esr_el1
     lsr x21, x20, #26
     cmp x21, #0x15

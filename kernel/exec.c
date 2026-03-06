@@ -13,8 +13,19 @@
 #include "kernel/uthread.h"
 #include "kernel/vm.h"
 #include "mm/kmap.h"
+#include "mm/mmu.h"
 #include "mm/page.h"
 #include "task_internal.h"
+
+// Invalidate TLB entries for user address space
+static inline void tlb_invalidate_user(void) {
+  asm volatile(
+      "dsb ish\n"
+      "tlbi vmalle1\n"
+      "dsb ish\n"
+      "isb\n" ::
+          : "memory");
+}
 
 #define EXEC_PATH_MAX 128
 
@@ -35,7 +46,7 @@ static long copy_user_cstr(char* dst, size_t dst_len, const char* user_src) {
   return -1;
 }
 
-long execve(const char* kpath) {
+long execve(const char* kpath, bool flush_tlb) {
   if (!kpath || kpath[0] == '\0') {
     return -1;
   }
@@ -50,6 +61,11 @@ long execve(const char* kpath) {
     printk("\n");
     return -1;
   }
+
+  // Switch TTBR0 to the kernel identity map before destroying
+  // the old user page table.  This ensures TTBR0_EL1 never
+  // points at freed memory (which would crash on any TLB miss).
+  mmu_switch_ttbr0(mmu_kernel_ttbr0());
 
   if (t->ttbr0) {
     vm_destroy_user(t);
@@ -101,37 +117,16 @@ long execve(const char* kpath) {
   t->user_sp = USER_STACK_TOP;
   t->mode = TASK_MODE_USER;
 
-  // asm volatile(
-  //     "msr ttbr0_el1, %0  \n"
-  //     "isb                \n"
-  //     "tlbi vmalle1is     \n"
-  //     "dsb ish            \n"
-  //     "isb                \n"
-  //     :
-  //     : "r"(t->ttbr0)
-  //     : "memory");
-
-  // asm volatile("msr ttbr0_el1, %0" : : "r"(t->ttbr0));
-  // asm volatile("isb");
-  // asm volatile("tlbi vmalle1is");
-  // asm volatile("dsb ish");
-  // asm volatile("isb");
-
-  // asm volatile("msr sp_el0, %0" : : "r"(USER_STACK_TOP));
-
-  // // Set up initial trapframe for the new user program
-  // struct trapframe* tf = (struct trapframe*)t->irq_sp;
-  // if (tf) {
-  //   for (int i = 0; i < 31; i++) tf->x[i] = 0;
-  //   tf->elr_el1 = USER_BASE;
-  //   tf->spsr_el1 = 0;
-  // }
-  t->irq_sp = 0;
+  // Invalidate TLB to flush stale translations from old page table
+  // Only do this for userspace execve, not during early boot
+  if (flush_tlb) {
+    tlb_invalidate_user();
+  }
 
   return 0;
 }
 
-long kernel_execve(const char* filepath) { return execve(filepath); }
+long kernel_execve(const char* filepath) { return execve(filepath, false); }
 
 long sys_execve(long filepath, long a1, long a2, long a3, long a4, long a5) {
   (void)a1;
@@ -147,7 +142,7 @@ long sys_execve(long filepath, long a1, long a2, long a3, long a4, long a5) {
     return -1;
   }
 
-  return execve(kpath);
+  return execve(kpath, true);
 }
 
 void load_init(void) {

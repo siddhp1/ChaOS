@@ -96,7 +96,7 @@ void mmu_switch_ttbr0(uintptr_t ttbr0) {
 
   // asm volatile("dsb ishst" ::: "memory");
   // asm volatile("isb");
-  // tlb_flush_all();
+  // // tlb_flush_all();
 }
 
 void setup_page_tables(void) {

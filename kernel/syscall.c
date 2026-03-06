@@ -2,6 +2,7 @@
 
 #include "kernel/exec.h"
 #include "kernel/fork.h"
+#include "kernel/printk.h"
 #include "kernel/scheduler.h"
 #include "kernel/string.h"
 #include "kernel/trap.h"
@@ -39,6 +40,11 @@ void syscall_entry(void* frame) {
   long a3 = tf->x[3];
   long a4 = tf->x[4];
   long a5 = tf->x[5];
+
+  if (nr == SYS_WRITE) {
+    printk("PID: ");
+    printk_hex_u32(current_task->pid);
+  }
 
   long ret = syscall_dispatch(nr, a0, a1, a2, a3, a4, a5);
 

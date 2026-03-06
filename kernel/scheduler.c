@@ -40,8 +40,9 @@ static inline void build_first_frame(struct task* task,
 }
 
 void idle_thread(void* arg) {
+  (void)arg;
   while (1) {
-    // printk("idle!\n");
+    printk("idle!\n");
   }
 }
 
