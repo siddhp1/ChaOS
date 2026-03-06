@@ -1,6 +1,6 @@
 #include "libc/libc.h"
 
-static int streq(const char *a, const char *b) {
+static int streq(const char* a, const char* b) {
   while (*a && *b) {
     if (*a != *b) return 0;
     a++;
@@ -28,7 +28,9 @@ int main(void) {
 
     if (streq(buf, "hello")) {
       int pid = fork();
-      if (pid == 0) {
+      if (pid < 0) {
+        write(1, "fork failed\n", 12);
+      } else if (pid == 0) {
         execve("bin/hello", 0);
         write(1, "exec failed\n", 12);  // execve should not return
       }

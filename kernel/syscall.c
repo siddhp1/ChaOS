@@ -3,6 +3,7 @@
 #include "kernel/exec.h"
 #include "kernel/fork.h"
 #include "kernel/scheduler.h"
+#include "kernel/string.h"
 #include "kernel/trap.h"
 #include "syscall_handlers.h"
 
@@ -29,7 +30,7 @@ void syscall_entry(void* frame) {
   struct trapframe* tf = (struct trapframe*)frame;
 
   // Store frame pointer for sys_execve and sys_fork
-  current_task->irq_sp = (uint64_t)frame;
+  current_task->irq_sp = (uint64_t)tf;
 
   long nr = tf->x[8];
   long a0 = tf->x[0];
@@ -40,6 +41,17 @@ void syscall_entry(void* frame) {
   long a5 = tf->x[5];
 
   long ret = syscall_dispatch(nr, a0, a1, a2, a3, a4, a5);
+
+  // After successful execve the address space was replaced.
+  // Rewrite the trapframe so eret enters the new program instead of
+  // returning to the (now-gone) caller.
+  if (nr == SYS_EXECVE && ret == 0) {
+    memset(tf, 0, sizeof(*tf));
+    tf->elr_el1 = current_task->user_entry;
+    tf->sp_el0 = current_task->user_sp;
+    tf->spsr_el1 = 0;  // EL0t
+    return;
+  }
 
   tf->x[0] = ret;
 }

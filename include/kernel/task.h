@@ -6,7 +6,7 @@
 
 #include "kernel/cpu_context.h"
 
-#define MAX_USER_PAGES 256
+#define MAX_USER_PAGES 240  // must keep sizeof(struct task) <= PAGE_SIZE (4096)
 
 enum task_mode { TASK_MODE_KERNEL, TASK_MODE_USER };
 
@@ -43,9 +43,13 @@ struct task {
   uint64_t user_page_count;
   struct task* parent;
   struct page* user_pages[MAX_USER_PAGES];
+  uint64_t user_page_vas[MAX_USER_PAGES];
 
   struct task* next;
 };
+
+_Static_assert(sizeof(struct task) <= 4096,
+               "struct task must fit in a single 4K page (see alloc_task)");
 
 // TODO: Determine if needed
 static inline bool task_is_user(const struct task* t) {

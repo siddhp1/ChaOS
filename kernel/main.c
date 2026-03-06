@@ -74,13 +74,13 @@ void kernel_entry(void) {
   }
 
   uart_init();
-  printk("UART initialized\n");
+  // printk("UART initialized\n");
 
   exception_init();
-  printk("Exceptions initialized\n");
+  // printk("Exceptions initialized\n");
 
   irq_init();
-  printk("IRQ initialized\n");
+  // printk("IRQ initialized\n");
 
   memory_init();
   printk("Memory initialized\n");

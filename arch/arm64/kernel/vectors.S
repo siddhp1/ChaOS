@@ -179,9 +179,6 @@ sync_el0:
     stp x28, x29, [sp, #IRQ_OFF_X28_X29]
     str x30,      [sp, #IRQ_OFF_X30]
 
-    mov x0, #0
-    bl mmu_switch_ttbr0
-
     mrs x0, elr_el1
     mrs x1, spsr_el1
     stp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
@@ -239,8 +236,67 @@ sync_el0_schedule:
     eret
 
 irq_el0:
-    bl panic_irq
-    b .
+    sub sp, sp, #IRQ_FRAME_SIZE
+
+    stp x0,  x1,  [sp, #IRQ_OFF_X0_X1]
+    stp x2,  x3,  [sp, #IRQ_OFF_X2_X3]
+    stp x4,  x5,  [sp, #IRQ_OFF_X4_X5]
+    stp x6,  x7,  [sp, #IRQ_OFF_X6_X7]
+    stp x8,  x9,  [sp, #IRQ_OFF_X8_X9]
+    stp x10, x11, [sp, #IRQ_OFF_X10_X11]
+    stp x12, x13, [sp, #IRQ_OFF_X12_X13]
+    stp x14, x15, [sp, #IRQ_OFF_X14_X15]
+    stp x16, x17, [sp, #IRQ_OFF_X16_X17]
+    stp x18, x19, [sp, #IRQ_OFF_X18_X19]
+    stp x20, x21, [sp, #IRQ_OFF_X20_X21]
+    stp x22, x23, [sp, #IRQ_OFF_X22_X23]
+    stp x24, x25, [sp, #IRQ_OFF_X24_X25]
+    stp x26, x27, [sp, #IRQ_OFF_X26_X27]
+    stp x28, x29, [sp, #IRQ_OFF_X28_X29]
+    str x30,      [sp, #IRQ_OFF_X30]
+
+    mrs x0, elr_el1
+    mrs x1, spsr_el1
+    stp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
+
+    mrs x19, sp_el0
+    str x19, [sp, #IRQ_OFF_SP_EL0]
+
+    bl irq_handler
+
+    mov x0, sp
+    bl scheduler_irq_exit
+    mov sp, x0
+
+    bl mmu_current_user_ttbr0
+    bl mmu_switch_ttbr0
+
+    ldr x19, [sp, #IRQ_OFF_SP_EL0]
+    msr sp_el0, x19
+
+    ldp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
+    msr elr_el1, x0
+    msr spsr_el1, x1
+
+    ldp x0,  x1,  [sp, #IRQ_OFF_X0_X1]
+    ldp x2,  x3,  [sp, #IRQ_OFF_X2_X3]
+    ldp x4,  x5,  [sp, #IRQ_OFF_X4_X5]
+    ldp x6,  x7,  [sp, #IRQ_OFF_X6_X7]
+    ldp x8,  x9,  [sp, #IRQ_OFF_X8_X9]
+    ldp x10, x11, [sp, #IRQ_OFF_X10_X11]
+    ldp x12, x13, [sp, #IRQ_OFF_X12_X13]
+    ldp x14, x15, [sp, #IRQ_OFF_X14_X15]
+    ldp x16, x17, [sp, #IRQ_OFF_X16_X17]
+    ldp x18, x19, [sp, #IRQ_OFF_X18_X19]
+    ldp x20, x21, [sp, #IRQ_OFF_X20_X21]
+    ldp x22, x23, [sp, #IRQ_OFF_X22_X23]
+    ldp x24, x25, [sp, #IRQ_OFF_X24_X25]
+    ldp x26, x27, [sp, #IRQ_OFF_X26_X27]
+    ldp x28, x29, [sp, #IRQ_OFF_X28_X29]
+    ldr x30,      [sp, #IRQ_OFF_X30]
+
+    add sp, sp, #IRQ_FRAME_SIZE
+    eret
 
 fiq_el0:
     bl panic_fiq

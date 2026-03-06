@@ -3,11 +3,13 @@
 #include <stddef.h>
 
 #include "kernel/initramfs.h"
+#include "kernel/kthread.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
 #include "kernel/trap.h"
+#include "kernel/uaccess.h"
 #include "kernel/uthread.h"
 #include "kernel/vm.h"
 #include "mm/kmap.h"
@@ -76,7 +78,9 @@ long execve(const char* kpath) {
 
     vm_map_user_page(t->ttbr0, va, p, VM_USER_RWX);
 
-    t->user_pages[t->user_page_count++] = p;
+    t->user_pages[t->user_page_count] = p;
+    t->user_page_vas[t->user_page_count] = va;
+    t->user_page_count++;
 
     va += PAGE_SIZE;
     src += chunk;
@@ -88,7 +92,9 @@ long execve(const char* kpath) {
     if (!sp_page) return -1;
     memset(kmap(sp_page), 0, PAGE_SIZE);
     vm_map_user_page(t->ttbr0, USER_STACK_TOP - PAGE_SIZE, sp_page, VM_USER_RW);
-    t->user_pages[t->user_page_count++] = sp_page;
+    t->user_pages[t->user_page_count] = sp_page;
+    t->user_page_vas[t->user_page_count] = USER_STACK_TOP - PAGE_SIZE;
+    t->user_page_count++;
   }
 
   t->user_entry = USER_BASE;

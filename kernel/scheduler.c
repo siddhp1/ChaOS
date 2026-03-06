@@ -151,15 +151,13 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
 
   struct task* prev = current_task;
   struct task* next = get_next_task();
-  if (!next || next == prev) {
+  if (next == prev) {
     return irq_sp;
   }
 
   if (next->irq_sp == 0) {
     uint64_t frame_sp = next->context.sp - sizeof(struct trapframe);
     struct trapframe* trapframe = (struct trapframe*)frame_sp;
-
-    // TODO: Consider condensing
     build_first_frame(next, trapframe);
     next->irq_sp = frame_sp;
   }

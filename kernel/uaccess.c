@@ -3,8 +3,8 @@
 #include <stdint.h>
 
 // Matches current EL0-mapped block
-#define USER_VA_START 0x40000000ULL
-#define USER_VA_END 0x80000000ULL
+#define USER_VA_START 0x00400000ULL
+#define USER_VA_END 0x00800000ULL
 
 bool user_range_ok(uint64_t addr, uint64_t len) {
   if (len == 0) return true;
