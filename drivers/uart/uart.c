@@ -1,6 +1,8 @@
 #include "kernel/uart.h"
 
-#define UART0_BASE 0x09000000UL
+#include "mm/mmu.h"
+
+#define UART0_BASE (KERNEL_BASE + 0x09000000UL)
 #define UART_DR (*(volatile unsigned int*)(UART0_BASE + 0x00))
 #define UART_FR (*(volatile unsigned int*)(UART0_BASE + 0x18))
 #define TXFF (1 << 5)

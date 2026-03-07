@@ -18,9 +18,6 @@
 #define DELAY_CYCLES 10000000
 #define SLEEP_TICKS 100
 
-extern uintptr_t bss_start;
-extern uintptr_t bss_end;
-
 extern void context_switch(struct cpu_context* a, struct cpu_context* b);
 
 static struct cpu_context boot_context;
@@ -64,12 +61,6 @@ void thread_waker(void* arg) {
 }
 
 void kernel_entry(void) {
-  // Zero out the BSS (static variables)
-  volatile uintptr_t* ptr = (volatile uintptr_t*)&bss_start;
-  while (ptr < &bss_end) {
-    *ptr++ = 0;
-  }
-
   uart_init();
   printk("UART initialized\n");
 
@@ -81,6 +72,27 @@ void kernel_entry(void) {
 
   memory_init();
   printk("Memory initialized\n");
+
+  printk("Testing L3 page allocation...\n");
+  void* p1 = kmalloc(1);
+  void* p2 = kmalloc(1);
+  void* p3 = kmalloc(1);
+
+  printk("Allocated p1=");
+  printk_hex_u64((uint64_t)p1);
+  printk("\n");
+  printk("Allocated p2=");
+  printk_hex_u64((uint64_t)p2);
+  printk("\n");
+  printk("Allocated p3=");
+  printk_hex_u64((uint64_t)p3);
+  printk("\n");
+
+  *(char*)p1 = 'A';
+  *(char*)p2 = 'B';
+  *(char*)p3 = 'C';
+
+  printk("Write test passed\n");
 
   scheduler_init();
   printk("Scheduler initialized\n");
