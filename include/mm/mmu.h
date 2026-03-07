@@ -24,6 +24,7 @@
 #define TCR_VALUE \
   ((TCR_T0SZ << 0) | (TCR_T1SZ << 16) | (0b00 << 14) | (0b10 << 30))
 
+uint64_t* get_kernel_l0_table(void);
 void setup_page_tables(void);
 void enable_mmu(uintptr_t ttbr0, uintptr_t ttbr1);
 void mmu_init(void);

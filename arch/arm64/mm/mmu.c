@@ -3,8 +3,8 @@
 #include <stdint.h>
 
 #include "kernel/printk.h"
-#include "pgtable.h"
-#include "tlb.h"
+#include "mm/pgtable.h"
+#include "mm/tlb.h"
 
 // Identity mapping (TTBR0)
 static uint64_t l0_table[512] __attribute__((aligned(0x1000)));
@@ -14,6 +14,8 @@ static uint64_t l1_table[512] __attribute__((aligned(0x1000)));
 static uint64_t l0_table_hi[512] __attribute__((aligned(0x1000)));
 static uint64_t l1_table_hi[512] __attribute__((aligned(0x1000)));
 static uint64_t l2_table_device[512] __attribute__((aligned(0x1000)));
+
+uint64_t* get_kernel_l0_table(void) { return l0_table_hi; }
 
 void setup_page_tables(void) {
   for (int i = 0; i < 512; i++) {
@@ -45,11 +47,6 @@ void setup_page_tables(void) {
 
   uintptr_t l1_hi_base = (uintptr_t)l1_table_hi;
   l0_table_hi[0] = (l1_hi_base & 0x0000FFFFFFFFF000ULL) | PTE_VALID | PTE_TABLE;
-
-  asm volatile("dsb ishst" ::: "memory");
-  asm volatile("isb");
-
-  tlb_flush_all();
 }
 
 static inline void write_mair_el1(uint64_t val) {
@@ -83,6 +80,7 @@ void enable_mmu(uintptr_t ttbr0, uintptr_t ttbr1) {
   uint64_t sctlr;
   asm volatile("mrs %0, SCTLR_EL1" : "=r"(sctlr));
 
+  // 0: MMU enable; 2: data cache enable; 12: instruction cache enable
   sctlr |= (1 << 0) | (1 << 2) | (1 << 12);
   asm volatile("msr SCTLR_EL1, %0" ::"r"(sctlr));
 

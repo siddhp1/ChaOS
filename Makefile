@@ -21,6 +21,7 @@ SRC = \
 	arch/arm64/kernel/vectors.S \
 	arch/arm64/mm/fault.c \
 	arch/arm64/mm/mmu.c \
+	arch/arm64/mm/pgtable.c \
 	drivers/uart/uart.c \
 	kernel/kthread.c \
 	kernel/main.c \
@@ -34,6 +35,7 @@ SRC = \
 	kernel/wait.c \
 	mm/heap.c \
 	mm/kmap.c \
+	mm/kvmalloc.c \
 	mm/memory.c \
 	mm/page.c \
 	mm/phys.c
