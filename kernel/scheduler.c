@@ -8,6 +8,7 @@
 #include "kernel/kthread.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
+#include "mm/pgtable.h"
 
 // TODO: Sync with vectors.s
 #define IRQ_FRAME_SIZE (16 * 17)
@@ -142,10 +143,20 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
 
     volatile uint64_t* elr_spsr =
         (volatile uint64_t*)(frame_sp + IRQ_OFF_ELR_SPSR);
-    elr_spsr[0] = next->context.lr;
-    elr_spsr[1] = SPSR_EL1H;
+
+    if (next->mode == TASK_MODE_USER) {
+      elr_spsr[0] = next->context.lr;
+      elr_spsr[1] = 0x0;
+    } else {
+      elr_spsr[0] = next->context.lr;
+      elr_spsr[1] = SPSR_EL1H;
+    }
 
     next->irq_sp = frame_sp;
+  }
+
+  if (next->mode == TASK_MODE_USER) {
+    switch_user_pgd(next->ttbr0);
   }
 
   return next->irq_sp;

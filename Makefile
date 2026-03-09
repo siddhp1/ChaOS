@@ -9,7 +9,6 @@ endif
 
 LDFLAGS = -T linker.ld
 
-# List source files here
 SRC = \
 	arch/arm64/boot/entry.S \
 	arch/arm64/kernel/context_switch.S \
@@ -22,6 +21,7 @@ SRC = \
 	arch/arm64/mm/fault.c \
 	arch/arm64/mm/mmu.c \
 	arch/arm64/mm/pgtable.c \
+	arch/arm64/mm/user_pgtable.c \
 	drivers/uart/uart.c \
 	kernel/kthread.c \
 	kernel/main.c \
@@ -32,6 +32,7 @@ SRC = \
 	kernel/sleep.c \
 	kernel/string.c \
 	kernel/task.c \
+	kernel/user_thread.c \
 	kernel/wait.c \
 	mm/heap.c \
 	mm/kmap.c \

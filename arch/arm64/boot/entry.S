@@ -40,6 +40,7 @@ _higher_half_entry:
     ldr  x0, =stack_top
     mov  sp, x0
 
+    // TODO: Consider removing this
     // Disable TTBR0 (identity mapping)
     msr  TTBR0_EL1, xzr
     isb

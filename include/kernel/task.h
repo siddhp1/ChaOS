@@ -5,6 +5,8 @@
 
 #include "kernel/cpu_context.h"
 
+enum task_mode { TASK_MODE_KERNEL, TASK_MODE_USER };
+
 enum task_state {
   TASK_READY,
   TASK_RUNNING,
@@ -29,6 +31,9 @@ struct task {
 
   int32_t time_slice;
   uint64_t wakeup_tick;
+
+  enum task_mode mode;
+  uint64_t ttbr0;
 
   struct task* next;
 };
