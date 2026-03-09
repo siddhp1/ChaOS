@@ -8,17 +8,22 @@
 #include "kernel/sleep.h"
 #include "kernel/task.h"
 #include "kernel/uart.h"
+#include "kernel/user_thread.h"
 #include "kernel/wait.h"
 #include "mm/heap.h"
 #include "mm/kmap.h"
 #include "mm/memory.h"
 #include "mm/mmu.h"
 #include "mm/page.h"
+#include "mm/pgtable.h"
 
 #define DELAY_CYCLES 10000000
 #define SLEEP_TICKS 100
 
 extern void context_switch(struct cpu_context* a, struct cpu_context* b);
+
+extern char _binary_userspace_test_user_bin_start[];
+extern char _binary_userspace_test_user_bin_end[];
 
 static struct cpu_context boot_context;
 
@@ -102,6 +107,26 @@ void kernel_entry(void) {
   struct task* t3 = kthread_create(thread_sleep_test, NULL);
   struct task* t4 = kthread_create(thread_wait_test, NULL);
   struct task* t5 = kthread_create(thread_waker, NULL);
+
+  // Create user process
+  size_t user_size = _binary_userspace_test_user_bin_end -
+                     _binary_userspace_test_user_bin_start;
+  printk("Loading user process (");
+  printk_hex_u64(user_size);
+  printk(" bytes)\n");
+
+  struct task* user_task =
+      create_user_process(_binary_userspace_test_user_bin_start, user_size);
+  if (user_task) {
+    printk("User process created with PID ");
+    printk_hex_u64(user_task->pid);
+    printk("\n");
+  } else {
+    printk("Failed to create user process\n");
+  }
+
+  // Switch to first task's page table before context switch
+  switch_user_pgd(current_task->ttbr0);
 
   // TODO: Move out of main
   context_switch(&boot_context, &current_task->context);
