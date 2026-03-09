@@ -1,0 +1,58 @@
+#include "mm/user_pgtable.h"
+
+#include <stddef.h>
+#include <stdint.h>
+
+#include "kernel/string.h"
+#include "mm/kmap.h"
+#include "mm/mmu.h"
+#include "mm/page.h"
+#include "mm/pgtable.h"
+
+// Allocate a new L0 page table for user space
+uint64_t* alloc_user_pgd(void) {
+  uint64_t* table = (uint64_t*)kmap(alloc_page());
+
+  memset(table, 0, PAGE_SIZE);
+
+  uint64_t* kernel_l0 = (uint64_t*)get_kernel_l0_table();
+
+  // TODO: Remove magic numbers
+  for (int i = 255; i < 512; i++) {
+    table[i] = kernel_l0[i];
+  }
+
+  return table;
+}
+
+// Free user page tables (recursive)
+static void free_page_table_recursive(uint64_t* table_phys, int level) {
+  if (!table_phys || level > 3) {
+    return;
+  }
+
+  uint64_t* table = (uint64_t*)kmap(phys_to_page((uint64_t)table_phys));
+
+  // If not L3, recursively free child tables
+  if (level < 3) {
+    for (int i = 0; i < PTRS_PER_TABLE; i++) {
+      uint64_t entry = table[i];
+      if ((entry & PTE_VALID) && ((entry & 0x3) == 0x3)) {  // Valid table
+        uint64_t child_phys = entry & 0x0000FFFFFFFFF000ULL;
+        free_page_table_recursive((uint64_t*)child_phys, level + 1);
+      }
+    }
+  }
+
+  // Free this table
+  free_page(phys_to_page((uint64_t)table_phys));
+}
+
+void free_user_pgd(uint64_t* pgd_phys) {
+  if (!pgd_phys) {
+    return;
+  }
+
+  // Start from L0 (level 0)
+  free_page_table_recursive(pgd_phys, 0);
+}

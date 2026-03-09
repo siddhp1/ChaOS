@@ -38,12 +38,20 @@ static uint64_t* get_or_create_l3_table(uint64_t* l0_table, uint64_t va) {
   uint64_t l0_idx = L0_INDEX(va);
   uint64_t l0_entry = l0_table[l0_idx];
 
+  uint64_t* l1_table;
   if (!PTE_IS_VALID(l0_entry)) {
-    return NULL;  // L0 should already exist for kernel space
-  }
+    // Should only happen for user
+    uint64_t l1_phys = alloc_page_table();
+    if (!l1_phys) {
+      return NULL;
+    }
 
-  uint64_t l1_phys = PTE_ADDR(l0_entry);
-  uint64_t* l1_table = (uint64_t*)(KERNEL_BASE + l1_phys);
+    l0_table[l0_idx] = l1_phys | PTE_VALID | PTE_TABLE;
+    l1_table = (uint64_t*)(KERNEL_BASE + l1_phys);
+  } else {
+    uint64_t l1_phys = PTE_ADDR(l0_entry);
+    l1_table = (uint64_t*)(KERNEL_BASE + l1_phys);
+  }
 
   // L1 -> L2
   uint64_t l1_idx = L1_INDEX(va);
@@ -118,4 +126,28 @@ void unmap_page_l3(uint64_t* l0_table, uint64_t va) {
   l3_table[l3_idx] = 0;
 
   tlb_flush_addr(va);
+}
+
+// Map page in user space (works with any L0 table)
+int map_user_page(uint64_t* l0_table_phys, uint64_t va, uint64_t phys,
+                  uint64_t attrs) {
+  // For user mappings, we need to work with physical addresses
+  struct page* pgd_page = phys_to_page((uint64_t)l0_table_phys);
+  if (!pgd_page) {
+    return -1;  // Invalid physical address
+  }
+
+  uint64_t* l0_table = (uint64_t*)kmap(pgd_page);
+  return map_page_l3(l0_table, va, phys, attrs);
+}
+
+void switch_user_pgd(uint64_t* pgd_phys) {
+  if (pgd_phys) {
+    // Switch to user page table
+    asm volatile("msr ttbr0_el1, %0" ::"r"((uint64_t)pgd_phys) : "memory");
+  } else {
+    // No user space, set TTBR0 to 0
+    asm volatile("msr ttbr0_el1, %0" ::"r"(0ULL) : "memory");
+  }
+  asm volatile("isb" ::: "memory");
 }
