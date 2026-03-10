@@ -126,7 +126,7 @@ void kernel_entry(void) {
   }
 
   // Switch to first task's page table before context switch
-  switch_user_pgd(current_task->ttbr0);
+  switch_user_pgd((uint64_t*)current_task->ttbr0);
 
   // TODO: Move out of main
   context_switch(&boot_context, &current_task->context);

@@ -11,8 +11,12 @@
 
 // Allocate a new L0 page table for user space
 uint64_t* alloc_user_pgd(void) {
-  uint64_t* table = (uint64_t*)kmap(alloc_page());
+  struct page* p = alloc_page();
+  if (!p) {
+    return NULL;
+  }
 
+  uint64_t* table = (uint64_t*)kmap(p);
   memset(table, 0, PAGE_SIZE);
 
   uint64_t* kernel_l0 = (uint64_t*)get_kernel_l0_table();
@@ -22,7 +26,7 @@ uint64_t* alloc_user_pgd(void) {
     table[i] = kernel_l0[i];
   }
 
-  return table;
+  return (uint64_t*)page_to_phys(p);
 }
 
 // Free user page tables (recursive)

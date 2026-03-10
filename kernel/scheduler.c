@@ -15,6 +15,8 @@
 #define IRQ_OFF_ELR_SPSR (16 * 16)
 #define SPSR_EL1H (0x5)  // EL1h, interrupts unmasked
 
+#define USER_STACK_TOP 0x0000000080000000ULL  // 2 GiB
+
 volatile uint64_t system_tick = 0;
 
 struct task* ready_queue = NULL;
@@ -147,6 +149,7 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
     if (next->mode == TASK_MODE_USER) {
       elr_spsr[0] = next->context.lr;
       elr_spsr[1] = 0x0;
+      asm volatile("msr sp_el0, %0" : : "r"(USER_STACK_TOP));
     } else {
       elr_spsr[0] = next->context.lr;
       elr_spsr[1] = SPSR_EL1H;
@@ -156,7 +159,7 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
   }
 
   if (next->mode == TASK_MODE_USER) {
-    switch_user_pgd(next->ttbr0);
+    switch_user_pgd((uint64_t*)next->ttbr0);
   }
 
   return next->irq_sp;

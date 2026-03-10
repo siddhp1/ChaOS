@@ -10,6 +10,7 @@
 #include "mm/page.h"
 #include "mm/pgtable.h"
 #include "mm/user_pgtable.h"
+#include "pid.h"
 #include "task_internal.h"
 
 #define USER_STACK_SIZE 4096
@@ -31,7 +32,7 @@ struct task* create_user_process(void* code, size_t code_size) {
   }
 
   t->mode = TASK_MODE_USER;
-  t->ttbr0 = pgd;
+  t->ttbr0 = (uint64_t)pgd;
 
   // Map code at 0x1000 (user space)
   uint64_t code_va = 0x1000;
