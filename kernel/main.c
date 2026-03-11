@@ -108,7 +108,6 @@ void kernel_entry(void) {
   struct task* t4 = kthread_create(thread_wait_test, NULL);
   struct task* t5 = kthread_create(thread_waker, NULL);
 
-  // Create user process
   size_t user_size = _binary_userspace_test_user_bin_end -
                      _binary_userspace_test_user_bin_start;
   printk("Loading user process (");
@@ -125,10 +124,8 @@ void kernel_entry(void) {
     printk("Failed to create user process\n");
   }
 
-  // Switch to first task's page table before context switch
+  // TODO: Organize
   switch_user_pgd((uint64_t*)current_task->ttbr0);
-
-  // TODO: Move out of main
   context_switch(&boot_context, &current_task->context);
 
   while (1) asm volatile("WFI");  // Unreachable

@@ -32,6 +32,7 @@ SRC = \
 	kernel/scheduler.c \
 	kernel/sleep.c \
 	kernel/string.c \
+	kernel/syscall.c \
 	kernel/task.c \
 	kernel/user_thread.c \
 	kernel/wait.c \
