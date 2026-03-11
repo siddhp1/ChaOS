@@ -4,73 +4,49 @@
 #include <stdint.h>
 
 #include "kernel/printk.h"
+#include "kernel/trap.h"
 #include "kernel/uart.h"
+#include "syscall_handlers.h"
 
-#define SYS_WRITE 1
-#define SYS_EXIT 2
-
-struct syscall_frame {
-  uint64_t x0, x1, x2, x3, x4, x5, x6, x7;
-  uint64_t x8, x9, x10, x11, x12, x13, x14, x15;
-  uint64_t x16, x17, x18, x19, x20, x21, x22, x23;
-  uint64_t x24, x25, x26, x27, x28, x29;
-  uint64_t x30, _pad;
-  uint64_t elr, spsr;
-  uint64_t sp_el0, _pad2;
+static syscall_fn_t syscall_table[SYS_MAX] = {
+    [SYS_WRITE] = sys_write,
+    [SYS_EXIT] = sys_exit,
 };
 
-static int64_t sys_write(int fd, const char* buf, size_t count) {
-  if (fd != 1) {
+long syscall_dispatch(long nr, long a0, long a1, long a2, long a3, long a4,
+                      long a5) {
+  if (nr < 0 || nr >= SYS_MAX) {
     return -1;
   }
 
-  // TODO: Validate user buffer is in user space
-  // TODO: Copy from user space properly
-
-  for (size_t i = 0; i < count; i++) {
-    uart_putc(buf[i]);
+  syscall_fn_t fn = syscall_table[nr];
+  if (!fn) {
+    return -1;
   }
 
-  return count;
+  return fn(a0, a1, a2, a3, a4, a5);
 }
 
-static void sys_exit(int status) {
-  printk("User process exited with status: ");
-  printk_hex_u64(status);
-  printk("\n");
+void handle_el0_sync(void* frame) {
+  struct trapframe* tf = (struct trapframe*)frame;
 
-  // TODO: Actually terminate the process
-
-  while (1) {
-    asm volatile("wfi");
-  }
-}
-
-void handle_el0_sync(struct syscall_frame* frame) {
   uint64_t esr;
   asm volatile("mrs %0, ESR_EL1" : "=r"(esr));
 
   uint32_t ec = (esr >> 26) & 0x3F;  // Exception class
 
   if (ec == 0x15) {  // SVC instruction
-    uint64_t syscall_num = frame->x8;
+    long nr = tf->x[8];
+    long a0 = tf->x[0];
+    long a1 = tf->x[1];
+    long a2 = tf->x[2];
+    long a3 = tf->x[3];
+    long a4 = tf->x[4];
+    long a5 = tf->x[5];
 
-    switch (syscall_num) {
-      case SYS_WRITE:
-        frame->x0 = sys_write(frame->x0, (const char*)frame->x1, frame->x2);
-        break;
+    long ret = syscall_dispatch(nr, a0, a1, a2, a3, a4, a5);
 
-      case SYS_EXIT:
-        sys_exit(frame->x0);
-        break;
-
-      default:
-        printk("Unknown syscall: ");
-        printk_hex_u64(syscall_num);
-        printk("\n");
-        frame->x0 = -1;
-        break;
-    }
+    tf->x[0] = ret;
   } else {
     printk("EL0 sync exception, EC=");
     printk_hex_u64(ec);

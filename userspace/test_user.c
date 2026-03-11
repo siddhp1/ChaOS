@@ -1,5 +1,5 @@
-#define SYS_WRITE 1
-#define SYS_EXIT 2
+#define SYS_WRITE 0
+#define SYS_EXIT 1
 
 long syscall(long num, long arg0, long arg1, long arg2);
 long write(int fd, const char* buf, unsigned long count);

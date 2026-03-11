@@ -9,6 +9,7 @@ endif
 
 LDFLAGS = -T linker.ld
 
+# TODO: Switch to globbing
 SRC = \
 	arch/arm64/boot/entry.S \
 	arch/arm64/kernel/context_switch.S \
@@ -33,6 +34,8 @@ SRC = \
 	kernel/sleep.c \
 	kernel/string.c \
 	kernel/syscall.c \
+	kernel/sys_exit.c \
+	kernel/sys_write.c \
 	kernel/task.c \
 	kernel/user_thread.c \
 	kernel/wait.c \
