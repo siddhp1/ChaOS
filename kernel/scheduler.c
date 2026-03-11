@@ -10,9 +10,10 @@
 #include "kernel/task.h"
 #include "mm/pgtable.h"
 
-// TODO: Sync with vectors.s
-#define IRQ_FRAME_SIZE (16 * 17)
+// TODO: Sync with vectors.S
 #define IRQ_OFF_ELR_SPSR (16 * 16)
+#define IRQ_OFF_USER_SP (16 * 17)
+#define IRQ_FRAME_SIZE (16 * 18)
 #define SPSR_EL1H (0x5)  // EL1h, interrupts unmasked
 
 #define USER_STACK_TOP 0x0000000080000000ULL  // 2 GiB
@@ -95,7 +96,6 @@ struct task* get_next_task(void) {
     return NULL;
   }
 
-  // If the current task is still running, make it runnable again
   if (current_task && current_task->state == TASK_RUNNING) {
     current_task->state = TASK_READY;
     if (current_task != idle_task) {
@@ -120,7 +120,6 @@ void schedule(void) {
   asm volatile("WFI");
 }
 
-// IRQ-return scheduling
 uint64_t scheduler_irq_exit(uint64_t irq_sp) {
   if (current_task) {
     current_task->irq_sp = irq_sp;
@@ -132,6 +131,13 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
   need_schedule = false;
 
   struct task* prev = current_task;
+
+  if (prev && prev->mode == TASK_MODE_USER) {
+    uint64_t sp_el0;
+    asm volatile("mrs %0, SP_EL0" : "=r"(sp_el0));
+    prev->sp_el0 = sp_el0;
+  }
+
   struct task* next = get_next_task();
   if (!next || next == prev) {
     return irq_sp;
@@ -146,21 +152,25 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
     volatile uint64_t* elr_spsr =
         (volatile uint64_t*)(frame_sp + IRQ_OFF_ELR_SPSR);
 
-    if (next->mode == TASK_MODE_USER) {
-      elr_spsr[0] = next->context.lr;
-      elr_spsr[1] = 0x0;
-      asm volatile("msr sp_el0, %0" : : "r"(USER_STACK_TOP));
-    } else {
-      elr_spsr[0] = next->context.lr;
-      elr_spsr[1] = SPSR_EL1H;
-    }
+    elr_spsr[0] = next->context.lr;
+    elr_spsr[1] = SPSR_EL1H;
 
     next->irq_sp = frame_sp;
   }
 
   if (next->mode == TASK_MODE_USER) {
+    asm volatile("msr SP_EL0, %0" ::"r"(next->sp_el0) : "memory");
     switch_user_pgd((uint64_t*)next->ttbr0);
   }
 
   return next->irq_sp;
+}
+
+void save_user_sp_el0(uint64_t irq_sp) {
+  if (!current_task || current_task->mode != TASK_MODE_USER) {
+    return;
+  }
+
+  uint64_t* user_sp_ptr = (uint64_t*)(irq_sp + IRQ_OFF_USER_SP);
+  current_task->sp_el0 = *user_sp_ptr;
 }

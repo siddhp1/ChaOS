@@ -34,6 +34,7 @@ struct task {
 
   enum task_mode mode;
   uint64_t ttbr0;
+  uint64_t sp_el0;
 
   struct task* next;
 };

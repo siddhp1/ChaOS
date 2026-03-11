@@ -8,6 +8,12 @@ static inline void tlb_flush_addr(uint64_t va) {
   asm volatile("isb" ::: "memory");
 }
 
+static inline void tlb_flush_ttbr0(void) {
+  asm volatile("tlbi vmalle1is" ::: "memory");
+  asm volatile("dsb ish" ::: "memory");
+  asm volatile("isb" ::: "memory");
+}
+
 static inline void tlb_flush_all(void) {
   asm volatile("dsb ish");
   asm volatile("tlbi vmalle1");

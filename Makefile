@@ -13,6 +13,7 @@ SRC = \
 	arch/arm64/boot/entry.S \
 	arch/arm64/kernel/context_switch.S \
 	arch/arm64/kernel/cpu.c \
+	arch/arm64/kernel/enter_usermode.S \
 	arch/arm64/kernel/exception.c \
 	arch/arm64/kernel/gic.c \
 	arch/arm64/kernel/irq.c \
