@@ -23,7 +23,7 @@ void exit(int status) {
   while (1);  // Should never reach
 }
 
-void _start(void) {
+__attribute__((section(".text.entry"))) void _start(void) {
   const char* msg = "Hello from user space!\n";
 
   // Count string length

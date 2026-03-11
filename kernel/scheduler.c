@@ -133,6 +133,14 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
   need_schedule = false;
 
   struct task* prev = current_task;
+
+  // Save current user task's SP_EL0 before switching away
+  if (prev && prev->mode == TASK_MODE_USER) {
+    uint64_t sp_el0;
+    asm volatile("mrs %0, SP_EL0" : "=r"(sp_el0));
+    prev->sp_el0 = sp_el0;
+  }
+
   struct task* next = get_next_task();
   if (!next || next == prev) {
     return irq_sp;
@@ -147,24 +155,18 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
     volatile uint64_t* elr_spsr =
         (volatile uint64_t*)(frame_sp + IRQ_OFF_ELR_SPSR);
 
-    if (next->mode == TASK_MODE_USER) {
-      elr_spsr[0] = next->context.lr;
-      elr_spsr[1] = 0x0;
-
-      // Set user stack pointer for when we return to EL0
-      asm volatile("msr SP_EL0, %0" ::"r"(next->sp_el0) : "memory");
-    } else {
-      elr_spsr[0] = next->context.lr;
-      elr_spsr[1] = SPSR_EL1H;
-    }
+    // First-time scheduling: always return to EL1.
+    // For user tasks, user_mode_entry runs at EL1 and
+    // calls enter_usermode() to drop to EL0.
+    elr_spsr[0] = next->context.lr;
+    elr_spsr[1] = SPSR_EL1H;
 
     next->irq_sp = frame_sp;
-  } else {
-    // Returning to an already-running task
-    if (next->mode == TASK_MODE_USER) {
-      // Restore user stack pointer
-      asm volatile("msr SP_EL0, %0" ::"r"(next->sp_el0) : "memory");
-    }
+  }
+
+  // Restore user stack pointer when switching to a user task
+  if (next->mode == TASK_MODE_USER) {
+    asm volatile("msr SP_EL0, %0" ::"r"(next->sp_el0) : "memory");
   }
 
   if (next->mode == TASK_MODE_USER) {

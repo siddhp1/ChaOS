@@ -23,10 +23,11 @@ extern void enter_usermode(uint64_t pc, uint64_t sp);
 // Wrapper function that will be called as kernel thread entry
 // It switches to user mode
 static void user_mode_entry(void* arg) {
-  struct task* t = (struct task*)arg;
+  (void)arg;
+  struct task* t = current_task;
 
   // Switch to this task's page table
-  switch_user_pgd(t->ttbr0);
+  switch_user_pgd((uint64_t*)t->ttbr0);
 
   // Jump to user mode
   // PC = 0x1000 (user code entry)

@@ -149,5 +149,7 @@ void switch_user_pgd(uint64_t* pgd_phys) {
     // No user space, set TTBR0 to 0
     asm volatile("msr ttbr0_el1, %0" ::"r"(0ULL) : "memory");
   }
+  asm volatile("tlbi vmalle1is" ::: "memory");
+  asm volatile("dsb ish" ::: "memory");
   asm volatile("isb" ::: "memory");
 }
