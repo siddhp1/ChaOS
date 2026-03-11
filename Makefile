@@ -37,6 +37,7 @@ SRC = \
 	kernel/sys_exit.c \
 	kernel/sys_write.c \
 	kernel/task.c \
+	kernel/user_access.c \
 	kernel/user_thread.c \
 	kernel/wait.c \
 	mm/heap.c \
