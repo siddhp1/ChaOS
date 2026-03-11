@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "kernel/kthread.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler.h"
 #include "kernel/task.h"
@@ -15,6 +16,26 @@
 
 #define USER_STACK_SIZE 4096
 #define USER_STACK_TOP 0x0000000080000000ULL  // 2 GiB
+
+// Forward declare assembly function
+extern void enter_usermode(uint64_t pc, uint64_t sp);
+
+// Wrapper function that will be called as kernel thread entry
+// It switches to user mode
+static void user_mode_entry(void* arg) {
+  struct task* t = (struct task*)arg;
+
+  // Switch to this task's page table
+  switch_user_pgd(t->ttbr0);
+
+  // Jump to user mode
+  // PC = 0x1000 (user code entry)
+  // SP = user stack top
+  enter_usermode(0x1000, USER_STACK_TOP);
+
+  // Should never return
+  while (1);
+}
 
 // Create a simple user process with static mapping
 struct task* create_user_process(void* code, size_t code_size) {
@@ -93,14 +114,18 @@ struct task* create_user_process(void* code, size_t code_size) {
     return NULL;
   }
 
+  t->irq_sp = (uint64_t)NULL;
+
+  t->sp_el0 = USER_STACK_TOP;
+
   // Set up context to enter user mode
   t->context.sp = (uint64_t)kstack + 4096;
-  t->context.lr = 0x1000;  // User entry point
+  t->context.lr = (uint64_t)user_mode_entry;
 
   t->state = TASK_READY;
   t->pid = pid_alloc();
-  t->fn = NULL;
-  t->arg = NULL;
+  t->fn = user_mode_entry;
+  t->arg = t;
   t->stack = (uint64_t)kstack;
   t->time_slice = DEFAULT_TIME_SLICE;
 

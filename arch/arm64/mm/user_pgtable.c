@@ -22,7 +22,7 @@ uint64_t* alloc_user_pgd(void) {
   uint64_t* kernel_l0 = (uint64_t*)get_kernel_l0_table();
 
   // TODO: Remove magic numbers
-  for (int i = 255; i < 512; i++) {
+  for (int i = 256; i < 512; i++) {
     table[i] = kernel_l0[i];
   }
 

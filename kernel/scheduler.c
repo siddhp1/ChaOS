@@ -11,8 +11,9 @@
 #include "mm/pgtable.h"
 
 // TODO: Sync with vectors.s
-#define IRQ_FRAME_SIZE (16 * 17)
+#define IRQ_FRAME_SIZE (16 * 18)
 #define IRQ_OFF_ELR_SPSR (16 * 16)
+#define IRQ_OFF_USER_SP (16 * 17)
 #define SPSR_EL1H (0x5)  // EL1h, interrupts unmasked
 
 #define USER_STACK_TOP 0x0000000080000000ULL  // 2 GiB
@@ -149,13 +150,21 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
     if (next->mode == TASK_MODE_USER) {
       elr_spsr[0] = next->context.lr;
       elr_spsr[1] = 0x0;
-      asm volatile("msr sp_el0, %0" : : "r"(USER_STACK_TOP));
+
+      // Set user stack pointer for when we return to EL0
+      asm volatile("msr SP_EL0, %0" ::"r"(next->sp_el0) : "memory");
     } else {
       elr_spsr[0] = next->context.lr;
       elr_spsr[1] = SPSR_EL1H;
     }
 
     next->irq_sp = frame_sp;
+  } else {
+    // Returning to an already-running task
+    if (next->mode == TASK_MODE_USER) {
+      // Restore user stack pointer
+      asm volatile("msr SP_EL0, %0" ::"r"(next->sp_el0) : "memory");
+    }
   }
 
   if (next->mode == TASK_MODE_USER) {
@@ -163,4 +172,14 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
   }
 
   return next->irq_sp;
+}
+
+void save_user_sp_el0(uint64_t irq_sp) {
+  if (!current_task || current_task->mode != TASK_MODE_USER) {
+    return;
+  }
+
+  // Read SP_EL0 from IRQ frame
+  uint64_t* user_sp_ptr = (uint64_t*)(irq_sp + IRQ_OFF_USER_SP);
+  current_task->sp_el0 = *user_sp_ptr;
 }
