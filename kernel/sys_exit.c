@@ -1,6 +1,7 @@
 #include <stddef.h>
 
 #include "kernel/printk.h"
+#include "kernel/reaper.h"
 #include "kernel/scheduler.h"
 #include "mm/pgtable.h"
 #include "syscall_handlers.h"
@@ -23,7 +24,7 @@ long sys_exit(long status, long a1, long a2, long a3, long a4, long a5) {
   // Set ttbr0 to 0
   switch_user_pgd(NULL);
 
-  current_task->state = TASK_ZOMBIE;
+  task_zombie(current_task);
   schedule();
 
   return 0;

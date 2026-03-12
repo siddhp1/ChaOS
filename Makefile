@@ -30,6 +30,7 @@ SRC = \
 	kernel/panic.c \
 	kernel/pid.c \
 	kernel/printk.c \
+	kernel/reaper.c \
 	kernel/scheduler.c \
 	kernel/sleep.c \
 	kernel/string.c \

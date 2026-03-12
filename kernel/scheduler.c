@@ -6,6 +6,7 @@
 
 #include "kernel/irq.h"
 #include "kernel/kthread.h"
+#include "kernel/reaper.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
 #include "mm/pgtable.h"
@@ -17,6 +18,8 @@
 #define SPSR_EL1H (0x5)  // EL1h, interrupts unmasked
 
 #define USER_STACK_TOP 0x0000000080000000ULL  // 2 GiB
+
+#define REAP_TICKS 100
 
 volatile uint64_t system_tick = 0;
 
@@ -47,6 +50,10 @@ void scheduler_tick(void) {
   if (current_task->time_slice <= 0) {
     current_task->time_slice = DEFAULT_TIME_SLICE;
     need_schedule = true;
+  }
+
+  if (system_tick % REAP_TICKS == 0) {
+    reap_zombies();
   }
 }
 

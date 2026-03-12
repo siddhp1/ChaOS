@@ -36,12 +36,12 @@ struct task {
   uint64_t ttbr0;
   uint64_t sp_el0;
 
+  int32_t exit_status;
+
   struct task* next;
 };
 
 void set_task_state(struct task* task, enum task_state new_state);
-
-// TODO: Correct implementation
-// void destroy_task(struct task* task);
+void destroy_task(struct task* task);
 
 #endif
