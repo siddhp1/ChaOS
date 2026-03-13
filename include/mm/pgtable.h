@@ -27,4 +27,6 @@ int map_user_page(uint64_t* l0_table_phys, uint64_t va, uint64_t phys,
 
 void switch_user_pgd(uint64_t* pgd_phys);
 
+uint64_t* copy_user_pgd(uint64_t* src_pgd);
+
 #endif

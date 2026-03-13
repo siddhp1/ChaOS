@@ -29,6 +29,10 @@ struct task* alloc_task(void) {
 
   memset(t, 0, sizeof(*t));
 
+  t->parent = NULL;
+  t->first_child = NULL;
+  t->sibling_next = NULL;
+
   return t;
 }
 
@@ -40,6 +44,33 @@ void destroy_task(struct task* task) {
   printk("Destroying task PID=");
   printk_hex_u64(task->pid);
   printk("\n");
+
+  if (task->parent) {
+    printk("Removing from parent's child list\n");
+
+    if (task->parent->first_child == task) {
+      task->parent->first_child = task->sibling_next;
+    } else {
+      // Find task in the sibling list
+      struct task* sibling = task->parent->first_child;
+      while (sibling && sibling->sibling_next != task) {
+        sibling = sibling->sibling_next;
+      }
+      if (sibling) {
+        sibling->sibling_next = task->sibling_next;
+      }
+    }
+  }
+
+  // TODO: Reparent to init
+  if (task->first_child) {
+    printk("Orphaning children\n");
+    struct task* child = task->first_child;
+    while (child) {
+      child->parent = NULL;
+      child = child->sibling_next;
+    }
+  }
 
   if (task->mode == TASK_MODE_USER && task->ttbr0) {
     printk("Freeing user page tables\n");

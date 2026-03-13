@@ -5,6 +5,7 @@
 
 #include "kernel/kthread.h"
 #include "kernel/printk.h"
+#include "kernel/process.h"
 #include "kernel/scheduler.h"
 #include "kernel/task.h"
 #include "mm/kmap.h"
@@ -36,9 +37,14 @@ struct task* create_user_process(void* code, size_t code_size) {
     return NULL;
   }
 
+  t->parent = current_task;
+  if (current_task) {
+    add_child(current_task, t);
+  }
+
   uint64_t* pgd = alloc_user_pgd();
   if (!pgd) {
-    // TODO: free task
+    // TODO: Free task
     return NULL;
   }
 

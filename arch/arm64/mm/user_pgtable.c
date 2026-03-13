@@ -23,6 +23,7 @@ uint64_t* alloc_user_pgd(void) {
   return (uint64_t*)page_to_phys(p);
 }
 
+// TODO: Make iterative
 static void free_page_table_recursive(uint64_t* table_phys, int level) {
   if (!table_phys || level > 3) {
     return;

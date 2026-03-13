@@ -38,6 +38,10 @@ struct task {
 
   int32_t exit_status;
 
+  struct task* parent;
+  struct task* first_child;
+  struct task* sibling_next;
+
   struct task* next;
 };
 
