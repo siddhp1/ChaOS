@@ -26,6 +26,7 @@ SRC = \
 	arch/arm64/mm/pgtable.c \
 	arch/arm64/mm/user_pgtable.c \
 	drivers/uart/uart.c \
+	kernel/initramfs.c \
 	kernel/kthread.c \
 	kernel/main.c \
 	kernel/panic.c \

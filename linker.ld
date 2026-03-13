@@ -39,6 +39,13 @@ SECTIONS {
     bss_start_phys = bss_start - KERNEL_VIRT_OFFSET;
     bss_end_phys = bss_end - KERNEL_VIRT_OFFSET;
 
+    . = ALIGN(4096);
+    .initramfs : AT(ADDR(.initramfs) - KERNEL_VIRT_OFFSET) {
+        initramfs_start = .;
+        KEEP(*(.initramfs))
+        initramfs_end = .;
+    }
+
     . = ALIGN(16);
     . = . + 0x4000;
     stack_top = .;

@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include "kernel/cpu.h"
+#include "kernel/initramfs.h"
 #include "kernel/irq.h"
 #include "kernel/kthread.h"
 #include "kernel/printk.h"
@@ -21,9 +22,6 @@
 #define SLEEP_TICKS 100
 
 extern void context_switch(struct cpu_context* a, struct cpu_context* b);
-
-extern char _binary_userspace_test_user_bin_start[];
-extern char _binary_userspace_test_user_bin_end[];
 
 static struct cpu_context boot_context;
 
@@ -108,22 +106,9 @@ void kernel_entry(void) {
   struct task* t4 = kthread_create(thread_wait_test, NULL);
   struct task* t5 = kthread_create(thread_waker, NULL);
 
-  size_t user_size = _binary_userspace_test_user_bin_end -
-                     _binary_userspace_test_user_bin_start;
-  printk("Loading user process (");
-  printk_hex_u64(user_size);
-  printk(" bytes)\n");
-
-  struct task* user_task =
-      create_user_process(_binary_userspace_test_user_bin_start, user_size);
-  if (user_task) {
-    printk("User process created with PID ");
-    printk_hex_u64(user_task->pid);
-    printk("\n");
-  } else {
-    printk("Failed to create user process\n");
-  }
-
+  initramfs_init();
+  printk("Initramfs initialized\n");
+#
   // TODO: Organize
   switch_user_pgd((uint64_t*)current_task->ttbr0);
   context_switch(&boot_context, &current_task->context);
