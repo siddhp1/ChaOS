@@ -56,17 +56,31 @@ OBJ = $(SRC:.c=.o)
 OBJ := $(OBJ:.S=.o)
 DEPS = $(OBJ:.o=.d)
 
-USER_SRC = userspace/test_user.c
-USER_OBJ = $(USER_SRC:.c=.o)
-USER_ELF = userspace/test_user.elf
-USER_BIN = userspace/test_user.bin
-USER_OBJ_EMBED = userspace/test_user_bin.o
-
 -include $(DEPS)
 
-all: kernel.elf $(USER_BIN)
+INITRAMFS_IMG  = initramfs.img
+INITRAMFS_OBJ  = initramfs_blob.o
 
-kernel.elf: $(OBJ) $(USER_OBJ_EMBED)
+all: kernel.elf
+
+userspace/init.bin userspace/hello.bin: userspace_build
+
+.PHONY: userspace_build
+userspace_build:
+	$(MAKE) -C userspace TOOLCHAIN=$(TOOLCHAIN)
+
+$(INITRAMFS_IMG): userspace/init.bin userspace/hello.bin
+	python3 tools/mkinitramfs.py -o $@ \
+		bin/init=userspace/init.bin \
+		bin/hello=userspace/hello.bin
+
+# Convert initramfs binary blob into an object file that can be linked into the kernel
+$(INITRAMFS_OBJ): $(INITRAMFS_IMG)
+	$(OBJCOPY) -I binary -O elf64-littleaarch64 \
+		--rename-section .data=.initramfs,alloc,load,readonly,data,contents \
+		$< $@
+
+kernel.elf: $(OBJ) $(INITRAMFS_OBJ)
 	$(LD) $(LDFLAGS) -o $@ $^
 
 %.o: %.c
@@ -75,21 +89,6 @@ kernel.elf: $(OBJ) $(USER_OBJ_EMBED)
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
 
-userspace/%.o: userspace/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(USER_ELF): $(USER_OBJ)
-	$(LD) -T userspace/linker.ld $(USER_OBJ) -o $@
-
-$(USER_BIN): $(USER_ELF)
-	$(OBJCOPY) -O binary $< $@
-
-# Convert user binary to object file for embedding in kernel
-$(USER_OBJ_EMBED): $(USER_BIN)
-	$(OBJCOPY) -I binary -O elf64-littleaarch64 -B aarch64 \
-		--rename-section .data=.rodata,alloc,load,readonly,data,contents \
-		$< $@
-
 clean:
-	rm -f $(OBJ) $(DEPS) kernel.elf kernel.bin
-	rm -f $(USER_OBJ) $(USER_ELF) $(USER_BIN) $(USER_OBJ_EMBED)
+	rm -f $(OBJ) $(DEPS) kernel.elf $(INITRAMFS_IMG) $(INITRAMFS_OBJ)
+	$(MAKE) -C userspace clean

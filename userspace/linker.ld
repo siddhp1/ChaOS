@@ -1,10 +1,10 @@
 ENTRY(_start)
 
 SECTIONS {
-    . = 0x1000;  /* User programs start at 4K */
+    . = 0x00400000;
 
     .text : {
-        KEEP(*(.text.entry))
+        *(.text.boot)
         *(.text*)
     }
 
@@ -16,7 +16,8 @@ SECTIONS {
         *(.data*)
     }
 
-    .bss : {
+    .bss (NOLOAD) : {
         *(.bss*)
+        *(COMMON)
     }
 }

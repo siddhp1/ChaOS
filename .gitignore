@@ -1,6 +1,11 @@
+# Executables
+*.bin
+*.img
+
 # Prerequisites
 *.d
 
 # Object files
 *.elf
 *.o
+
