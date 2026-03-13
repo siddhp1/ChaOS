@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "kernel/printk.h"
+#include "kernel/scheduler.h"
 #include "kernel/trap.h"
 #include "kernel/uart.h"
 #include "syscall_handlers.h"
@@ -11,6 +12,7 @@
 static syscall_fn_t syscall_table[SYS_MAX] = {
     [SYS_WRITE] = sys_write,
     [SYS_EXIT] = sys_exit,
+    [SYS_FORK] = sys_fork,
 };
 
 long syscall_dispatch(long nr, long a0, long a1, long a2, long a3, long a4,
@@ -29,6 +31,11 @@ long syscall_dispatch(long nr, long a0, long a1, long a2, long a3, long a4,
 
 void handle_el0_sync(void* frame) {
   struct trapframe* tf = (struct trapframe*)frame;
+
+  // Ensure irq sp is not stale
+  if (current_task) {
+    current_task->irq_sp = (uint64_t)frame;
+  }
 
   uint64_t esr;
   asm volatile("mrs %0, ESR_EL1" : "=r"(esr));

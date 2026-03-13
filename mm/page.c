@@ -42,6 +42,21 @@ void free_page(struct page* page) {
   free_list = ptr;
 }
 
+void page_get(struct page* page) {
+  if (page && page->refcount > 0) {
+    page->refcount++;
+  }
+}
+
+void page_put(struct page* page) {
+  if (!page || page->refcount == 0) return;
+
+  page->refcount--;
+  if (page->refcount == 0) {
+    free_page(page);
+  }
+}
+
 uintptr_t page_to_phys(struct page* page) {
   struct page_internal* p = (struct page_internal*)page;
   size_t idx = (size_t)(p - pages);
