@@ -40,6 +40,7 @@ SRC = \
 	kernel/syscall.c \
 	kernel/sys_exit.c \
 	kernel/sys_fork.c \
+	kernel/sys_read.c \
 	kernel/sys_write.c \
 	kernel/task.c \
 	kernel/user_access.c \

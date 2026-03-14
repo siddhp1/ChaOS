@@ -13,7 +13,9 @@ LIBC_SRC = \
 	libc/syscall.c \
 	libc/write.c \
 	libc/exit.c \
-	libc/fork.c
+	libc/fork.c \
+	libc/read.c \
+	libc/write.c
 
 SRC = \
 	userspace_entry.S \
