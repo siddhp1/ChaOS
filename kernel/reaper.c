@@ -40,9 +40,7 @@ void reap_zombies(void) {
   while (zombie) {
     struct task* next = zombie->next;
 
-    printk("Reaping zombie PID=");
-    printk_hex_u64(zombie->pid);
-    printk("\n");
+    printk("Reaping zombie PID=%u\n", zombie->pid);
 
     destroy_task(zombie);
 

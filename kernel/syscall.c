@@ -54,11 +54,7 @@ void handle_el0_sync(void* frame) {
 
     tf->x[0] = ret;
   } else {
-    printk("EL0 sync exception, EC=");
-    printk_hex_u64(ec);
-    printk(" ESR=");
-    printk_hex_u64(esr);
-    printk("\n");
+    printk("EL0 sync exception, EC=%u, ESR=%lu\n", exception, esr);
 
     // TODO: Switch to panic
     while (1) {

@@ -14,9 +14,7 @@ long sys_exit(long status, long a1, long a2, long a3, long a4, long a5) {
   (void)a4;
   (void)a5;
 
-  printk("User process exited with status: ");
-  printk_hex_u64(status);
-  printk("\n");
+  printk("User process exited with status: %ld\n", status);
 
   // TODO: Add process exit status
   // current_task->exit_status = status;

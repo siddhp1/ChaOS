@@ -82,15 +82,9 @@ void kernel_entry(void) {
   void* p2 = kmalloc(1);
   void* p3 = kmalloc(1);
 
-  printk("Allocated p1=");
-  printk_hex_u64((uint64_t)p1);
-  printk("\n");
-  printk("Allocated p2=");
-  printk_hex_u64((uint64_t)p2);
-  printk("\n");
-  printk("Allocated p3=");
-  printk_hex_u64((uint64_t)p3);
-  printk("\n");
+  printk("Allocated p1=%lx\n", (uint64_t)p1);
+  printk("Allocated p2=%lx\n", (uint64_t)p2);
+  printk("Allocated p3=%lx\n", (uint64_t)p3);
 
   *(char*)p1 = 'A';
   *(char*)p2 = 'B';

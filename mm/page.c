@@ -78,11 +78,7 @@ void dump_free_pages(void) {
     count++;
   }
 
-  printk("Free pages: ");
-  printk_hex_u64((uint64_t)count);
-  printk(" / ");
-  printk_hex_u64((uint64_t)total_pages);
-  printk("\n");
+  printk("Free pages: %lu / %lu\n", (uint64_t)count, (uint64_t)total_pages);
 }
 
 void dump_page(struct page* page) {
@@ -92,11 +88,6 @@ void dump_page(struct page* page) {
   }
 
   uintptr_t phys = page_to_phys(page);
-  printk("Page: phys=");
-  printk_hex_u64((uint64_t)phys);
-  printk(" flags=");
-  printk_hex_u32(page->flags);
-  printk(" refcount=");
-  printk_hex_u32(page->refcount);
-  printk("\n");
+  printk("Page: phys=%lu flags=%u refcount=%u\n", (uint64_t)phys, page->flags,
+         page->refcount);
 }

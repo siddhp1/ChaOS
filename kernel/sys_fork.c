@@ -35,9 +35,7 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   (void)a4;
   (void)a5;
 
-  printk("sys_fork: called by PID=");
-  printk_hex_u64(current_task->pid);
-  printk("\n");
+  printk("sys_fork: called by PID=%d\n", current_task->pid);
 
   struct task* parent = current_task;
 
@@ -48,9 +46,7 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   }
 
   printk("sys_fork: Copying page tables\n");
-  printk("  Parent TTBR0 (phys): ");
-  printk_hex_u64(parent->ttbr0);
-  printk("\n");
+  printk("Parent TTBR0 (phys): %lx\n", parent->ttbr0);
 
   struct page* parent_pgd_page = phys_to_page(parent->ttbr0);
   if (!parent_pgd_page) {
@@ -63,9 +59,7 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   }
 
   uint64_t* parent_pgd_va = (uint64_t*)kmap(parent_pgd_page);
-  printk("  Parent PGD (virt): ");
-  printk_hex_u64((uint64_t)parent_pgd_va);
-  printk("\n");
+  printk("Parent PGD (virt): %lx\n", (uint64_t)parent_pgd_va);
 
   uint64_t* child_pgd_va = copy_user_pgd(parent_pgd_va);
   if (!child_pgd_va) {
@@ -78,12 +72,8 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   }
 
   uint64_t child_pgd_phys = ((uint64_t)child_pgd_va) - KERNEL_BASE;
-  printk("  Child PGD (virt): ");
-  printk_hex_u64((uint64_t)child_pgd_va);
-  printk("\n");
-  printk("  Child TTBR0 (phys): ");
-  printk_hex_u64(child_pgd_phys);
-  printk("\n");
+  printk("Child PGD (virt): %lx\n", (uint64_t)child_pgd_va);
+  printk("Child TTBR0 (phys): %lx\n", child_pgd_phys);
 
   child->ttbr0 = child_pgd_phys;
   child->mode = TASK_MODE_USER;
@@ -104,9 +94,7 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   child->stack = (uint64_t)child_kstack;
 
   printk("sys_fork: Copying IRQ frame from parent\n");
-  printk("  Parent irq_sp: ");
-  printk_hex_u64(parent->irq_sp);
-  printk("\n");
+  printk("Parent irq_sp: %lx\n", parent->irq_sp);
 
   struct irq_frame* parent_frame = (struct irq_frame*)parent->irq_sp;
 
@@ -120,12 +108,8 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   // Child returns 0 from fork
   child_frame->regs[0] = 0;
 
-  printk("  Child frame at: ");
-  printk_hex_u64(child_frame_addr);
-  printk("\n");
-  printk("  Child x0 (return value): ");
-  printk_hex_u64(child_frame->regs[0]);
-  printk("\n");
+  printk("Child frame at: %lx\n", child_frame_addr);
+  printk("Child x0 (return value): %lx\n", child_frame->regs[0]);
 
   child->context.sp = child_frame_addr;
   child->context.lr = (uint64_t)fork_child_return;
@@ -152,9 +136,7 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
 
   add_child(parent, child);
 
-  printk("sys_fork: Created child PID=");
-  printk_hex_u64(child->pid);
-  printk("\n");
+  printk("sys_fork: Created child PID=%d\n", child->pid);
 
   enqueue_task(child);
   return child->pid;

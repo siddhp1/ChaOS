@@ -41,9 +41,7 @@ void destroy_task(struct task* task) {
     return;
   }
 
-  printk("Destroying task PID=");
-  printk_hex_u64(task->pid);
-  printk("\n");
+  printk("Destroying task PID=%d\n", task->pid);
 
   if (task->parent) {
     printk("Removing from parent's child list\n");

@@ -244,16 +244,11 @@ uint64_t* copy_user_pgd(uint64_t* src_pgd) {
     return NULL;
   }
 
-  printk("Copying user page tables from ");
-  printk_hex_u64((uint64_t)src_pgd);
-  printk("\n");
-
+  printk("Copying user page tables from %lx\n", (uint64_t)src_pgd);
   uint64_t* new_pgd = copy_page_table_level(src_pgd, 0);
 
   if (new_pgd) {
-    printk("Successfully copied user page tables to ");
-    printk_hex_u64((uint64_t)new_pgd);
-    printk("\n");
+    printk("Successfully copied user page tables to %lx\n", (uint64_t)new_pgd);
   } else {
     printk("Failed to copy user page tables\n");
   }
