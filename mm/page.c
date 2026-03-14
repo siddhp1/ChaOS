@@ -42,6 +42,21 @@ void free_page(struct page* page) {
   free_list = ptr;
 }
 
+void page_get(struct page* page) {
+  if (page && page->refcount > 0) {
+    page->refcount++;
+  }
+}
+
+void page_put(struct page* page) {
+  if (!page || page->refcount == 0) return;
+
+  page->refcount--;
+  if (page->refcount == 0) {
+    free_page(page);
+  }
+}
+
 uintptr_t page_to_phys(struct page* page) {
   struct page_internal* p = (struct page_internal*)page;
   size_t idx = (size_t)(p - pages);
@@ -63,11 +78,7 @@ void dump_free_pages(void) {
     count++;
   }
 
-  printk("Free pages: ");
-  printk_hex_u64((uint64_t)count);
-  printk(" / ");
-  printk_hex_u64((uint64_t)total_pages);
-  printk("\n");
+  printk("Free pages: %lu / %lu\n", (uint64_t)count, (uint64_t)total_pages);
 }
 
 void dump_page(struct page* page) {
@@ -77,11 +88,6 @@ void dump_page(struct page* page) {
   }
 
   uintptr_t phys = page_to_phys(page);
-  printk("Page: phys=");
-  printk_hex_u64((uint64_t)phys);
-  printk(" flags=");
-  printk_hex_u32(page->flags);
-  printk(" refcount=");
-  printk_hex_u32(page->refcount);
-  printk("\n");
+  printk("Page: phys=%lu flags=%u refcount=%u\n", (uint64_t)phys, page->flags,
+         page->refcount);
 }

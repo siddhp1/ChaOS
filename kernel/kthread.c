@@ -53,6 +53,9 @@ struct task* kthread_create(void (*fn)(void*), void* arg) {
 
   t->time_slice = DEFAULT_TIME_SLICE;
 
+  t->mode = TASK_MODE_KERNEL;
+  t->ttbr0 = 0;
+
   t->next = NULL;
 
   enqueue_task(t);

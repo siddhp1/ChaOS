@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include "kernel/cpu.h"
+#include "kernel/initramfs.h"
 #include "kernel/irq.h"
 #include "kernel/kthread.h"
 #include "kernel/printk.h"
@@ -8,18 +9,17 @@
 #include "kernel/sleep.h"
 #include "kernel/task.h"
 #include "kernel/uart.h"
+#include "kernel/user_thread.h"
 #include "kernel/wait.h"
 #include "mm/heap.h"
 #include "mm/kmap.h"
 #include "mm/memory.h"
 #include "mm/mmu.h"
 #include "mm/page.h"
+#include "mm/pgtable.h"
 
 #define DELAY_CYCLES 10000000
 #define SLEEP_TICKS 100
-
-extern uintptr_t bss_start;
-extern uintptr_t bss_end;
 
 extern void context_switch(struct cpu_context* a, struct cpu_context* b);
 
@@ -64,12 +64,6 @@ void thread_waker(void* arg) {
 }
 
 void kernel_entry(void) {
-  // Zero out the BSS (static variables)
-  volatile uintptr_t* ptr = (volatile uintptr_t*)&bss_start;
-  while (ptr < &bss_end) {
-    *ptr++ = 0;
-  }
-
   uart_init();
   printk("UART initialized\n");
 
@@ -82,6 +76,22 @@ void kernel_entry(void) {
   memory_init();
   printk("Memory initialized\n");
 
+  printk("Testing L3 page allocation...\n");
+
+  void* p1 = kmalloc(1);
+  void* p2 = kmalloc(1);
+  void* p3 = kmalloc(1);
+
+  printk("Allocated p1=%lx\n", (uint64_t)p1);
+  printk("Allocated p2=%lx\n", (uint64_t)p2);
+  printk("Allocated p3=%lx\n", (uint64_t)p3);
+
+  *(char*)p1 = 'A';
+  *(char*)p2 = 'B';
+  *(char*)p3 = 'C';
+
+  printk("Write test passed\n");
+
   scheduler_init();
   printk("Scheduler initialized\n");
 
@@ -91,8 +101,18 @@ void kernel_entry(void) {
   struct task* t4 = kthread_create(thread_wait_test, NULL);
   struct task* t5 = kthread_create(thread_waker, NULL);
 
-  // TODO: Move out of main
+  initramfs_init();
+  printk("Initramfs initialized\n");
+
+  struct task* init_task = load_init();
+  if (!init_task) {
+    printk("Cannot launch init\n");
+    while (1) asm volatile("wfi");
+  }
+
+  // TODO: Organize
+  switch_user_pgd((uint64_t*)current_task->ttbr0);
   context_switch(&boot_context, &current_task->context);
 
-  while (1) asm volatile("WFI");  // Unreachable
+  while (1) asm volatile("wfi");  // Unreachable
 }

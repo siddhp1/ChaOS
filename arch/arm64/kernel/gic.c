@@ -2,8 +2,10 @@
 
 #include <stdint.h>
 
-#define GICD_BASE 0x08000000UL
-#define GICR_BASE 0x080A0000UL
+#include "mm/mmu.h"
+
+#define GICD_BASE (KERNEL_BASE + 0x08000000UL)
+#define GICR_BASE (KERNEL_BASE + 0x080A0000UL)
 
 #define GICR_RD_BASE (GICR_BASE)
 #define GICR_SGI_BASE (GICR_BASE + 0x10000UL)
