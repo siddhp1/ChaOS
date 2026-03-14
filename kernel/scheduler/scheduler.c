@@ -1,4 +1,4 @@
-#include "kernel/scheduler.h"
+#include "kernel/scheduler/scheduler.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -6,7 +6,7 @@
 
 #include "kernel/irq.h"
 #include "kernel/kthread.h"
-#include "kernel/reaper.h"
+#include "kernel/scheduler/reaper.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
 #include "mm/pgtable.h"

@@ -4,6 +4,7 @@
 
 #include "kernel/printk.h"
 #include "kernel/string.h"
+#include "kernel/user_thread.h"
 
 #define INIT_FILE_PATH "bin/init"
 

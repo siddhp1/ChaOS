@@ -1,7 +1,7 @@
 #ifndef WAIT_H
 #define WAIT_H
 
-#include "kernel/scheduler.h"
+#include "kernel/scheduler/scheduler.h"
 #include "kernel/task.h"
 
 extern struct task* wait_queue;

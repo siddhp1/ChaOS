@@ -1,8 +1,8 @@
 #include <stddef.h>
 
 #include "kernel/printk.h"
-#include "kernel/reaper.h"
-#include "kernel/scheduler.h"
+#include "kernel/scheduler/reaper.h"
+#include "kernel/scheduler/scheduler.h"
 #include "mm/pgtable.h"
 #include "syscall_handlers.h"
 

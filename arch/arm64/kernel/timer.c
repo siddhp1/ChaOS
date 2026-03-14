@@ -4,8 +4,8 @@
 
 #include "irq_internal.h"
 #include "kernel/printk.h"
-#include "kernel/scheduler.h"
-#include "kernel/sleep.h"
+#include "kernel/scheduler/scheduler.h"
+#include "kernel/scheduler/sleep.h"
 
 #define TIMER_IRQ 27
 // TODO: Increase frequency

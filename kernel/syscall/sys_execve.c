@@ -1,7 +1,7 @@
 #include <stdint.h>
 
 #include "kernel/initramfs.h"
-#include "kernel/scheduler.h"
+#include "kernel/scheduler/scheduler.h"
 #include "kernel/task.h"
 #include "kernel/trap.h"
 #include "kernel/user_access.h"

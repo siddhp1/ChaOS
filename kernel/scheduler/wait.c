@@ -1,4 +1,4 @@
-#include "kernel/wait.h"
+#include "kernel/scheduler/wait.h"
 
 #include <stddef.h>
 
