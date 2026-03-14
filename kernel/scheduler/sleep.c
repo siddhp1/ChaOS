@@ -1,10 +1,10 @@
-#include "kernel/sleep.h"
+#include "kernel/scheduler/sleep.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
 #include "kernel/irq.h"
-#include "kernel/scheduler.h"
+#include "kernel/scheduler/scheduler.h"
 
 struct task* sleep_queue = NULL;
 

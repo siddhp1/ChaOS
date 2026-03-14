@@ -3,10 +3,9 @@
 #include <stddef.h>
 
 #include "kernel/irq.h"
-#include "kernel/scheduler.h"
+#include "kernel/pid.h"
+#include "kernel/scheduler/scheduler.h"
 #include "kernel/task.h"
-#include "pid.h"
-#include "task_internal.h"
 
 #define KSTACK_SIZE 4096
 

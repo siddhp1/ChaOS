@@ -1,10 +1,10 @@
-#include "kernel/reaper.h"
+#include "kernel/scheduler/reaper.h"
 
 #include <stddef.h>
 
 #include "kernel/irq.h"
 #include "kernel/printk.h"
-#include "kernel/scheduler.h"
+#include "kernel/scheduler/scheduler.h"
 #include "kernel/task.h"
 
 static struct task* zombie_queue = NULL;

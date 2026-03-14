@@ -1,10 +1,10 @@
-#include "kernel/syscall.h"
+#include "kernel/syscall/syscall.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
 #include "kernel/printk.h"
-#include "kernel/scheduler.h"
+#include "kernel/scheduler/scheduler.h"
 #include "kernel/trap.h"
 #include "kernel/uart.h"
 #include "syscall_handlers.h"

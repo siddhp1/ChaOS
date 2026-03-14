@@ -1,18 +1,17 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "kernel/pid.h"
 #include "kernel/printk.h"
 #include "kernel/process.h"
-#include "kernel/scheduler.h"
+#include "kernel/scheduler/scheduler.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
 #include "mm/pgtable.h"
 #include "mm/user_pgtable.h"
-#include "pid.h"
 #include "syscall_handlers.h"
-#include "task_internal.h"
 
 // TODO: Sync with vectors
 #define IRQ_FRAME_SIZE 288

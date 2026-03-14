@@ -4,16 +4,15 @@
 #include <stdint.h>
 
 #include "kernel/kthread.h"
+#include "kernel/pid.h"
 #include "kernel/process.h"
-#include "kernel/scheduler.h"
+#include "kernel/scheduler/scheduler.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
 #include "mm/pgtable.h"
 #include "mm/user_pgtable.h"
-#include "pid.h"
-#include "task_internal.h"
 
 #define USER_STACK_SIZE 4096
 #define USER_STACK_TOP 0x0000000080000000ULL  // 2 GiB

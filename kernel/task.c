@@ -7,7 +7,6 @@
 #include "mm/kmap.h"
 #include "mm/page.h"
 #include "mm/user_pgtable.h"
-#include "task_internal.h"
 
 void* alloc_stack(void) {
   struct page* p = alloc_page();

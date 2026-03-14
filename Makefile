@@ -33,20 +33,20 @@ SRC = \
 	kernel/pid.c \
 	kernel/printk.c \
 	kernel/process.c \
-	kernel/reaper.c \
-	kernel/scheduler.c \
-	kernel/sleep.c \
+	kernel/scheduler/reaper.c \
+	kernel/scheduler/scheduler.c \
+	kernel/scheduler/sleep.c \
 	kernel/string.c \
-	kernel/syscall.c \
-	kernel/sys_execve.c \
-	kernel/sys_exit.c \
-	kernel/sys_fork.c \
-	kernel/sys_read.c \
-	kernel/sys_write.c \
+	kernel/syscall/syscall.c \
+	kernel/syscall/sys_execve.c \
+	kernel/syscall/sys_exit.c \
+	kernel/syscall/sys_fork.c \
+	kernel/syscall/sys_read.c \
+	kernel/syscall/sys_write.c \
 	kernel/task.c \
 	kernel/user_access.c \
 	kernel/user_thread.c \
-	kernel/wait.c \
+	kernel/scheduler/wait.c \
 	mm/heap.c \
 	mm/kmap.c \
 	mm/kvmalloc.c \
