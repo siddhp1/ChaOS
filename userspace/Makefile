@@ -18,8 +18,9 @@ LIBC_SRC = \
 	libc/write.c
 
 SRC = \
-	userspace_entry.S \
+	hello.c \
 	init.c \
+	userspace_entry.S \
 	$(LIBC_SRC)
 
 OBJ = $(SRC:.c=.o)

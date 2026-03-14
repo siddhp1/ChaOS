@@ -63,6 +63,21 @@ void thread_waker(void* arg) {
   }
 }
 
+// TODO: Rename and move
+static struct task* launch_init_from_initramfs(void) {
+  struct initramfs_file* initf = initramfs_lookup("bin/init");
+  if (!initf) {
+    printk("initramfs: missing bin/init\n");
+    return NULL;
+  }
+
+  printk("initramfs: launching bin/init size=");
+  printk_hex_u64((uint64_t)initf->size);
+  printk("\n");
+
+  return create_user_process(initf->data, initf->size);
+}
+
 void kernel_entry(void) {
   uart_init();
   printk("UART initialized\n");
@@ -108,7 +123,13 @@ void kernel_entry(void) {
 
   initramfs_init();
   printk("Initramfs initialized\n");
-#
+
+  struct task* init_task = launch_init_from_initramfs();
+  if (!init_task) {
+    printk("Cannot launch init\n");
+    while (1) asm volatile("wfi");
+  }
+
   // TODO: Organize
   switch_user_pgd((uint64_t*)current_task->ttbr0);
   context_switch(&boot_context, &current_task->context);
