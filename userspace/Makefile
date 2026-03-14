@@ -11,7 +11,7 @@ LDFLAGS = -T linker.ld
 
 LIBC_SRC = \
 	libc/syscall.c \
-	libc/write.c \
+	libc/execve.c \
 	libc/exit.c \
 	libc/fork.c \
 	libc/read.c \

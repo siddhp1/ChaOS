@@ -10,6 +10,7 @@
 #include "syscall_handlers.h"
 
 static syscall_fn_t syscall_table[SYS_MAX] = {
+    [SYS_WRITE] = sys_write, [SYS_EXIT] = sys_exit, [SYS_EXECVE] = sys_execve,
     [SYS_FORK] = sys_fork,   [SYS_READ] = sys_read,
 };
 
