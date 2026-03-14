@@ -52,7 +52,7 @@ long sys_execve(long pathname, long argv, long envp, long a3, long a4,
 
   if (!f || !f->data || f->size == 0) return -1;
 
-  if (load_user_image_into_task(current_task, f->data, f->size) != 0) return -1;
+  if (load_user_image(current_task, f->data, f->size) != 0) return -1;
 
   struct trapframe* frame = (struct trapframe*)current_task->irq_sp;
   if (!frame) return -1;

@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "kernel/task.h"
+
 struct initramfs_file {
   const char* name;
   void* data;
@@ -11,5 +13,6 @@ struct initramfs_file {
 
 void initramfs_init(void);
 struct initramfs_file* initramfs_lookup(const char* filename);
+struct task* load_init(void);
 
 #endif

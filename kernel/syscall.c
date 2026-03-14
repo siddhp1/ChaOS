@@ -39,9 +39,9 @@ void handle_el0_sync(void* frame) {
   uint64_t esr;
   asm volatile("mrs %0, ESR_EL1" : "=r"(esr));
 
-  uint32_t ec = (esr >> 26) & 0x3F;  // Exception class
+  uint32_t exception = (esr >> 26) & 0x3F;  // Exception class
 
-  if (ec == 0x15) {  // SVC instruction
+  if (exception == 0x15) {  // SVC instruction
     long nr = tf->x[8];
     long a0 = tf->x[0];
     long a1 = tf->x[1];

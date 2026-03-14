@@ -5,6 +5,8 @@
 #include "kernel/printk.h"
 #include "kernel/string.h"
 
+#define INIT_FILE_PATH "bin/init"
+
 #define MAX_FILES 32
 
 extern char initramfs_start[];
@@ -27,9 +29,7 @@ void initramfs_init(void) {
     files[file_count].data = init_ptr;
     init_ptr += size;
 
-    printk("initramfs: file ");
-    printk(files[file_count].name);
-    printk("\n");
+    printk("initramfs: file %s\n", files[file_count].name);
 
     file_count++;
   }
@@ -42,4 +42,17 @@ struct initramfs_file* initramfs_lookup(const char* filename) {
     }
   }
   return NULL;
+}
+
+struct task* load_init(void) {
+  struct initramfs_file* init_file = initramfs_lookup(INIT_FILE_PATH);
+  if (!init_file) {
+    printk("initramfs: missing %s\n", INIT_FILE_PATH);
+    return NULL;
+  }
+
+  printk("initramfs: launching %s size=%lx\n", INIT_FILE_PATH,
+         (uint64_t)init_file->size);
+
+  return create_user_process(init_file->data, init_file->size);
 }

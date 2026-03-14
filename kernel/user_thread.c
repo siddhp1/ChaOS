@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 #include "kernel/kthread.h"
-#include "kernel/printk.h"
 #include "kernel/process.h"
 #include "kernel/scheduler.h"
 #include "kernel/string.h"
@@ -52,7 +51,7 @@ struct task* create_user_process(void* code, size_t code_size) {
   t->mode = TASK_MODE_USER;
   t->ttbr0 = (uint64_t)pgd;
 
-  if (load_user_image_into_task(t, code, code_size) != 0) {
+  if (load_user_image(t, code, code_size) != 0) {
     // TODO: Free task
     return NULL;
   }
@@ -98,8 +97,7 @@ struct task* create_user_process(void* code, size_t code_size) {
   return t;
 }
 
-int load_user_image_into_task(struct task* t, const void* code,
-                              size_t code_size) {
+int load_user_image(struct task* t, const void* code, size_t code_size) {
   if (!t || !code || code_size == 0) return -1;
 
   uint64_t* new_pgd = alloc_user_pgd();
