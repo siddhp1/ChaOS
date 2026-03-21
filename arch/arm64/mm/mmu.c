@@ -49,28 +49,11 @@ void setup_page_tables(void) {
   l0_table_hi[0] = (l1_hi_base & 0x0000FFFFFFFFF000ULL) | PTE_VALID | PTE_TABLE;
 }
 
-static inline void write_mair_el1(uint64_t val) {
-  asm volatile("msr MAIR_EL1, %0" ::"r"(val));
-}
-
-static inline void write_tcr_el1(uint64_t val) {
-  asm volatile("msr TCR_EL1, %0" ::"r"(val));
-}
-
-static inline void write_ttbr0_el1(uintptr_t val) {
-  asm volatile("msr TTBR0_EL1, %0" ::"r"(val));
-}
-
-static inline void write_ttbr1_el1(uintptr_t val) {
-  asm volatile("msr TTBR1_EL1, %0" ::"r"(val));
-}
-
 void enable_mmu(uintptr_t ttbr0, uintptr_t ttbr1) {
-  write_mair_el1(MAIR_VALUE);
-  write_tcr_el1(TCR_VALUE);
-
-  write_ttbr0_el1(ttbr0);
-  write_ttbr1_el1(ttbr1);
+  asm volatile("msr MAIR_EL1, %0" ::"r"(MAIR_VALUE));
+  asm volatile("msr TCR_EL1, %0" ::"r"(TCR_VALUE));
+  asm volatile("msr TTBR0_EL1, %0" ::"r"(ttbr0));
+  asm volatile("msr TTBR1_EL1, %0" ::"r"(ttbr1));
 
   asm volatile("dsb ishst" ::: "memory");
   asm volatile("isb");
@@ -79,11 +62,11 @@ void enable_mmu(uintptr_t ttbr0, uintptr_t ttbr1) {
 
   uint64_t sctlr;
   asm volatile("mrs %0, SCTLR_EL1" : "=r"(sctlr));
-
   // 0: MMU enable; 2: data cache enable; 12: instruction cache enable
   sctlr |= (1 << 0) | (1 << 2) | (1 << 12);
   asm volatile("msr SCTLR_EL1, %0" ::"r"(sctlr));
 
+  asm volatile("dsb ishst" ::: "memory");
   asm volatile("isb");
 }
 

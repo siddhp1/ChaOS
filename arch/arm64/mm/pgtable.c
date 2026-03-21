@@ -145,7 +145,7 @@ void switch_user_pgd(uint64_t* pgd_phys) {
     // No user space, set TTBR0 to 0
     asm volatile("msr ttbr0_el1, %0" ::"r"(0ULL) : "memory");
   }
-  tlb_flush_ttbr0();
+  tlb_flush_all();
 }
 
 static int copy_page_contents(uint64_t dest_phys, uint64_t src_phys) {
