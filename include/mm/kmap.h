@@ -3,7 +3,7 @@
 
 #include "mm/page.h"
 
-#define KERNEL_BASE 0xFFFF000000000000UL
+#define KERNEL_VIRT_BASE 0xFFFF000000000000UL
 
 void* kmap(struct page* page);
 

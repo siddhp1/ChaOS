@@ -79,7 +79,7 @@ void destroy_task(struct task* task) {
     printk("Freeing kernel stack\n");
     // TODO: Make this a helper (in kmap.c)
     uint64_t stack_va = task->stack;
-    uint64_t stack_phys = stack_va - KERNEL_BASE;
+    uint64_t stack_phys = stack_va - KERNEL_VIRT_BASE;
     struct page* stack_page = phys_to_page(stack_phys);
     if (stack_page) {
       free_page(stack_page);
@@ -89,7 +89,7 @@ void destroy_task(struct task* task) {
 
   printk("Freeing task structure\n");
   uint64_t task_va = (uint64_t)task;
-  uint64_t task_phys = task_va - KERNEL_BASE;
+  uint64_t task_phys = task_va - KERNEL_VIRT_BASE;
   struct page* task_page = phys_to_page(task_phys);
   if (task_page) {
     free_page(task_page);

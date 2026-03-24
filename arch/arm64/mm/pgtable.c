@@ -48,10 +48,10 @@ static uint64_t* get_or_create_l3_table(uint64_t* l0_table, uint64_t va) {
     }
 
     l0_table[l0_idx] = l1_phys | PTE_VALID | PTE_TABLE;
-    l1_table = (uint64_t*)(KERNEL_BASE + l1_phys);
+    l1_table = (uint64_t*)(KERNEL_VIRT_BASE + l1_phys);
   } else {
     uint64_t l1_phys = PTE_ADDR(l0_entry);
-    l1_table = (uint64_t*)(KERNEL_BASE + l1_phys);
+    l1_table = (uint64_t*)(KERNEL_VIRT_BASE + l1_phys);
   }
 
   // L1 -> L2
@@ -66,10 +66,10 @@ static uint64_t* get_or_create_l3_table(uint64_t* l0_table, uint64_t va) {
     }
 
     l1_table[l1_idx] = l2_phys | PTE_VALID | PTE_TABLE;
-    l2_table = (uint64_t*)(KERNEL_BASE + l2_phys);
+    l2_table = (uint64_t*)(KERNEL_VIRT_BASE + l2_phys);
   } else if (PTE_IS_TABLE(l1_entry)) {
     uint64_t l2_phys = PTE_ADDR(l1_entry);
-    l2_table = (uint64_t*)(KERNEL_BASE + l2_phys);
+    l2_table = (uint64_t*)(KERNEL_VIRT_BASE + l2_phys);
   } else {
     // L1 is a 1 GiB block
     return NULL;
@@ -87,10 +87,10 @@ static uint64_t* get_or_create_l3_table(uint64_t* l0_table, uint64_t va) {
     }
 
     l2_table[l2_idx] = l3_phys | PTE_VALID | PTE_TABLE;
-    l3_table = (uint64_t*)(KERNEL_BASE + l3_phys);
+    l3_table = (uint64_t*)(KERNEL_VIRT_BASE + l3_phys);
   } else if (PTE_IS_TABLE(l2_entry)) {
     uint64_t l2_phys = PTE_ADDR(l2_entry);
-    l3_table = (uint64_t*)(KERNEL_BASE + l2_phys);
+    l3_table = (uint64_t*)(KERNEL_VIRT_BASE + l2_phys);
   } else {
     // L2 is a 2 MiB block
     return NULL;
@@ -202,7 +202,7 @@ static int copy_pte(uint64_t* dest_table, uint64_t* src_table, int index,
     return -1;
   }
 
-  uint64_t new_table_phys = ((uint64_t)new_next_table) - KERNEL_BASE;
+  uint64_t new_table_phys = ((uint64_t)new_next_table) - KERNEL_VIRT_BASE;
 
   uint64_t new_pte =
       (new_table_phys & PTE_ADDR_MASK) | PTE_TYPE_TABLE | PTE_VALID;

@@ -10,8 +10,8 @@
 
 // Virtual address space for dynamic kernel allocations
 // Start after the direct-mapped region (after 2 GiB of RAM)
-#define KVMALLOC_BASE (KERNEL_BASE + 0x80000000UL)  // + 2 GiB
-#define KVMALLOC_SIZE (0x40000000UL)                // 1 GiB
+#define KVMALLOC_BASE (KERNEL_VIRT_BASE + 0x80000000UL)  // + 2 GiB
+#define KVMALLOC_SIZE (0x40000000UL)                     // 1 GiB
 
 static uint64_t next_kvirt = KVMALLOC_BASE;
 

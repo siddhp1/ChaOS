@@ -1,8 +1,8 @@
 #include "kernel/uart.h"
 
-#include "mm/mmu.h"
+#include "mm/kmap.h"
 
-#define UART0_BASE (KERNEL_BASE + 0x09000000UL)
+#define UART0_BASE (KERNEL_VIRT_BASE + 0x09000000UL)
 #define UART_DR (*(volatile unsigned int*)(UART0_BASE + 0x00))
 #define UART_FR (*(volatile unsigned int*)(UART0_BASE + 0x18))
 
