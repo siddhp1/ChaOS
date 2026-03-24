@@ -3,19 +3,36 @@
 #include <stddef.h>
 
 #include "kernel/printk.h"
+#include "mm/kmap.h"
 #include "page_internal.h"
-#include "phys.h"
 
-static struct page_internal pages[(PHYS_END - PHYS_START) >> PAGE_SHIFT];
-static size_t total_pages;
+#define PHYS_START 0x40000000UL
+#define PHYS_END 0x60000000UL
+#define TOTAL_PAGES (PHYS_END - PHYS_START) >> PAGE_SHIFT
+
+extern char page_start[];
+
+static struct page_internal pages[TOTAL_PAGES];
 
 struct page_internal* free_list;
 
 void page_init(void) {
-  total_pages = (phys_end - phys_start) >> PAGE_SHIFT;
+  uintptr_t page_start_phys = kernel_to_phys((uintptr_t)page_start);
+
+  size_t first_free_idx = 0;
+  first_free_idx = (page_start_phys - PHYS_START) >> PAGE_SHIFT;
+  if (first_free_idx > TOTAL_PAGES) {
+    first_free_idx = TOTAL_PAGES;
+  }
+
+  for (size_t i = 0; i < first_free_idx; i++) {
+    pages[i].pub.refcount = 1;
+    pages[i].pub.flags = 0;
+    pages[i].next = NULL;
+  }
 
   free_list = NULL;
-  for (size_t i = 0; i < total_pages; i++) {
+  for (size_t i = first_free_idx; i < TOTAL_PAGES; i++) {
     pages[i].pub.flags = 0;
     pages[i].pub.refcount = 0;
     pages[i].next = free_list;
@@ -42,52 +59,17 @@ void free_page(struct page* page) {
   free_list = ptr;
 }
 
-void page_get(struct page* page) {
-  if (page && page->refcount > 0) {
-    page->refcount++;
-  }
-}
-
-void page_put(struct page* page) {
-  if (!page || page->refcount == 0) return;
-
-  page->refcount--;
-  if (page->refcount == 0) {
-    free_page(page);
-  }
-}
-
 uintptr_t page_to_phys(struct page* page) {
   struct page_internal* p = (struct page_internal*)page;
   size_t idx = (size_t)(p - pages);
-  return phys_start + (idx << PAGE_SHIFT);
+  return PHYS_START + (idx << PAGE_SHIFT);
 }
 
 struct page* phys_to_page(uintptr_t phys) {
-  if (phys < phys_start || phys >= phys_end) {
+  if (phys < PHYS_START || phys >= PHYS_END) {
     return NULL;
   }
 
-  size_t idx = (phys - phys_start) >> PAGE_SHIFT;
+  size_t idx = (phys - PHYS_START) >> PAGE_SHIFT;
   return &pages[idx].pub;
-}
-
-void dump_free_pages(void) {
-  size_t count = 0;
-  for (struct page_internal* p = free_list; p; p = p->next) {
-    count++;
-  }
-
-  printk("Free pages: %lu / %lu\n", (uint64_t)count, (uint64_t)total_pages);
-}
-
-void dump_page(struct page* page) {
-  if (!page) {
-    printk("Page: (null)\n");
-    return;
-  }
-
-  uintptr_t phys = page_to_phys(page);
-  printk("Page: phys=%lu flags=%u refcount=%u\n", (uint64_t)phys, page->flags,
-         page->refcount);
 }
