@@ -8,7 +8,7 @@
 #include "kernel/string.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
-#include "mm/tlb.h"
+#include "tlb.h"
 
 #define L0_INDEX(va) (((va) >> 39) & 0x1FF)
 #define L1_INDEX(va) (((va) >> 30) & 0x1FF)

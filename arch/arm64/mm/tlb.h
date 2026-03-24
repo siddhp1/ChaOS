@@ -1,6 +1,8 @@
 #ifndef TLB_H
 #define TLB_H
 
+#include <stdint.h>
+
 // TODO: Add ASID
 static inline void tlb_flush_addr(uint64_t va) {
   asm volatile("dsb ishst" ::: "memory");
