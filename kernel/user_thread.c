@@ -109,7 +109,7 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
   while (remaining > 0) {
     struct page* p = alloc_page();
     if (!p) {
-      free_user_pgd(new_pgd);
+      free_user_pgd((uintptr_t)new_pgd);
       return -1;
     }
 
@@ -125,7 +125,7 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
 
     if (map_user_page(new_pgd, va, pa, attrs) != 0) {
       free_page(p);
-      free_user_pgd(new_pgd);
+      free_user_pgd((uintptr_t)new_pgd);
       return -1;
     }
 
@@ -136,7 +136,7 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
 
   struct page* sp = alloc_page();
   if (!sp) {
-    free_user_pgd(new_pgd);
+    free_user_pgd((uintptr_t)new_pgd);
     return -1;
   }
 
@@ -147,7 +147,7 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
   if (map_user_page(new_pgd, USER_STACK_TOP - PAGE_SIZE, spa, stack_attrs) !=
       0) {
     free_page(sp);
-    free_user_pgd(new_pgd);
+    free_user_pgd((uintptr_t)new_pgd);
     return -1;
   }
 
@@ -160,7 +160,7 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
   }
 
   if (old_pgd) {
-    free_user_pgd(old_pgd);
+    free_user_pgd((uintptr_t)old_pgd);
   }
 
   return 0;

@@ -82,7 +82,7 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   void* child_kstack = alloc_stack();
   if (!child_kstack) {
     printk("sys_fork: Failed to allocate kernel stack\n");
-    free_user_pgd(child_pgd_va);
+    free_user_pgd((uintptr_t)child_pgd_va);
     uint64_t task_va = (uint64_t)child;
     uint64_t task_phys = task_va - KERNEL_VIRT_BASE;
     struct page* task_page = phys_to_page(task_phys);

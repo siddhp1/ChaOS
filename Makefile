@@ -51,7 +51,7 @@ SRC = \
 	mm/kmap.c \
 	mm/kvmalloc.c \
 	mm/memory.c \
-	mm/page.c
+	mm/user_pgtable.c
 
 OBJ = $(SRC:.c=.o)
 OBJ := $(OBJ:.S=.o)

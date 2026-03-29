@@ -71,7 +71,7 @@ void destroy_task(struct task* task) {
 
   if (task->mode == TASK_MODE_USER && task->ttbr0) {
     printk("Freeing user page tables\n");
-    free_user_pgd((uint64_t*)task->ttbr0);
+    free_user_pgd(task->ttbr0);
     task->ttbr0 = 0;
   }
 
