@@ -9,7 +9,6 @@ endif
 
 LDFLAGS = -T kernel_linker.ld
 
-# TODO: Switch to globbing
 SRC = \
 	arch/arm64/boot/kernel_boot.S \
 	arch/arm64/kernel/context_switch.S \
@@ -23,8 +22,7 @@ SRC = \
 	arch/arm64/kernel/vectors.S \
 	arch/arm64/mm/fault.c \
 	arch/arm64/mm/mmu.c \
-	arch/arm64/mm/pgtable.c \
-	arch/arm64/mm/user_pgtable.c \
+	arch/arm64/mm/tlb.c \
 	drivers/uart/uart.c \
 	kernel/initramfs.c \
 	kernel/kthread.c \
@@ -51,6 +49,8 @@ SRC = \
 	mm/kmap.c \
 	mm/kvmalloc.c \
 	mm/memory.c \
+	mm/page.c \
+	mm/pgtable.c \
 	mm/user_pgtable.c
 
 OBJ = $(SRC:.c=.o)

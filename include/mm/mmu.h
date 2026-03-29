@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-uint64_t* get_kernel_l0_table(void);
 void mmu_init(void);
+
+void set_ttbr0(uintptr_t phys);
 
 #endif

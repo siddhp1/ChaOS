@@ -6,6 +6,7 @@
 #include "kernel/trap.h"
 #include "kernel/user_access.h"
 #include "kernel/user_thread.h"
+#include "mm/mmu.h"
 #include "mm/page.h"
 #include "mm/pgtable.h"
 #include "mm/user_pgtable.h"
@@ -62,7 +63,7 @@ long sys_execve(long pathname, long argv, long envp, long a3, long a4,
   frame->x[0] = 0;
 
   current_task->sp_el0 = USER_STACK_TOP;
-  switch_user_pgd((uint64_t*)current_task->ttbr0);
+  set_ttbr0(current_task->ttbr0);
 
   return 0;
 }

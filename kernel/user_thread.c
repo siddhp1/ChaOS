@@ -10,6 +10,7 @@
 #include "kernel/string.h"
 #include "kernel/task.h"
 #include "mm/kmap.h"
+#include "mm/mmu.h"
 #include "mm/page.h"
 #include "mm/pgtable.h"
 #include "mm/user_pgtable.h"
@@ -23,7 +24,7 @@ static void user_mode_entry(void* arg) {
   (void)arg;
   struct task* t = current_task;
 
-  switch_user_pgd((uint64_t*)t->ttbr0);
+  set_ttbr0(t->ttbr0);
 
   enter_usermode(USER_ENTRY_VA, USER_STACK_TOP);
 
@@ -41,7 +42,7 @@ struct task* create_user_process(void* code, size_t code_size) {
     add_child(current_task, t);
   }
 
-  uint64_t* pgd = alloc_user_pgd();
+  uint64_t* pgd = (uint64_t*)alloc_page_table();
   if (!pgd) {
     // TODO: Free task
     return NULL;
@@ -99,7 +100,7 @@ struct task* create_user_process(void* code, size_t code_size) {
 int load_user_image(struct task* t, const void* code, size_t code_size) {
   if (!t || !code || code_size == 0) return -1;
 
-  uint64_t* new_pgd = alloc_user_pgd();
+  uint64_t* new_pgd = (uint64_t*)alloc_page_table();
   if (!new_pgd) return -1;
 
   const uint8_t* src = (const uint8_t*)code;
@@ -156,7 +157,7 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
   t->sp_el0 = USER_STACK_TOP;
 
   if (t == current_task) {
-    switch_user_pgd(new_pgd);
+    set_ttbr0((uintptr_t)new_pgd);
   }
 
   if (old_pgd) {

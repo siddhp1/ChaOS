@@ -3,6 +3,7 @@
 #include "kernel/printk.h"
 #include "kernel/scheduler/reaper.h"
 #include "kernel/scheduler/scheduler.h"
+#include "mm/mmu.h"
 #include "mm/pgtable.h"
 #include "syscall_handlers.h"
 
@@ -20,7 +21,7 @@ long sys_exit(long status, long a1, long a2, long a3, long a4, long a5) {
   // current_task->exit_status = status;
 
   // Set ttbr0 to 0
-  switch_user_pgd(NULL);
+  set_ttbr0(0);
 
   task_zombie(current_task);
   schedule();
