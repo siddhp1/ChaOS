@@ -58,7 +58,7 @@ long sys_execve(long pathname, long argv, long envp, long a3, long a4,
   struct trapframe* frame = (struct trapframe*)current_task->irq_sp;
   if (!frame) return -1;
 
-  frame->elr_el1 = USER_ENTRY_VA;
+  frame->elr_el1 = USER_VIRT_ENTRY;
   frame->sp_el0 = USER_STACK_TOP;
   frame->x[0] = 0;
 

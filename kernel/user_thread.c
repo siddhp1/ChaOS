@@ -16,7 +16,7 @@
 #include "mm/user_pgtable.h"
 
 #define USER_STACK_SIZE 4096
-#define USER_STACK_TOP 0x0000000080000000ULL  // 2 GiB
+#define USER_STACK_TOP USER_VIRT_END
 
 extern void enter_usermode(uint64_t pc, uint64_t sp);
 
@@ -26,7 +26,7 @@ static void user_mode_entry(void* arg) {
 
   set_ttbr0(t->ttbr0);
 
-  enter_usermode(USER_ENTRY_VA, USER_STACK_TOP);
+  enter_usermode(USER_VIRT_ENTRY, USER_STACK_TOP);
 
   while (1);
 }
@@ -105,7 +105,7 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
 
   const uint8_t* src = (const uint8_t*)code;
   size_t remaining = code_size;
-  uint64_t va = USER_ENTRY_VA;
+  uint64_t va = USER_VIRT_ENTRY;
 
   while (remaining > 0) {
     struct page* p = alloc_page();
