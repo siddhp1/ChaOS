@@ -10,12 +10,13 @@
 #include "kernel/string.h"
 #include "kernel/task.h"
 #include "mm/kmap.h"
+#include "mm/mmu.h"
 #include "mm/page.h"
 #include "mm/pgtable.h"
 #include "mm/user_pgtable.h"
 
 #define USER_STACK_SIZE 4096
-#define USER_STACK_TOP 0x0000000080000000ULL  // 2 GiB
+#define USER_STACK_TOP USER_VIRT_END
 
 extern void enter_usermode(uint64_t pc, uint64_t sp);
 
@@ -23,9 +24,9 @@ static void user_mode_entry(void* arg) {
   (void)arg;
   struct task* t = current_task;
 
-  switch_user_pgd((uint64_t*)t->ttbr0);
+  set_ttbr0(t->ttbr0);
 
-  enter_usermode(USER_ENTRY_VA, USER_STACK_TOP);
+  enter_usermode(USER_VIRT_ENTRY, USER_STACK_TOP);
 
   while (1);
 }
@@ -41,7 +42,7 @@ struct task* create_user_process(void* code, size_t code_size) {
     add_child(current_task, t);
   }
 
-  uint64_t* pgd = alloc_user_pgd();
+  uint64_t* pgd = (uint64_t*)alloc_page_table();
   if (!pgd) {
     // TODO: Free task
     return NULL;
@@ -99,17 +100,17 @@ struct task* create_user_process(void* code, size_t code_size) {
 int load_user_image(struct task* t, const void* code, size_t code_size) {
   if (!t || !code || code_size == 0) return -1;
 
-  uint64_t* new_pgd = alloc_user_pgd();
+  uint64_t* new_pgd = (uint64_t*)alloc_page_table();
   if (!new_pgd) return -1;
 
   const uint8_t* src = (const uint8_t*)code;
   size_t remaining = code_size;
-  uint64_t va = USER_ENTRY_VA;
+  uint64_t va = USER_VIRT_ENTRY;
 
   while (remaining > 0) {
     struct page* p = alloc_page();
     if (!p) {
-      free_user_pgd(new_pgd);
+      free_user_pgd((uintptr_t)new_pgd);
       return -1;
     }
 
@@ -125,7 +126,7 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
 
     if (map_user_page(new_pgd, va, pa, attrs) != 0) {
       free_page(p);
-      free_user_pgd(new_pgd);
+      free_user_pgd((uintptr_t)new_pgd);
       return -1;
     }
 
@@ -136,7 +137,7 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
 
   struct page* sp = alloc_page();
   if (!sp) {
-    free_user_pgd(new_pgd);
+    free_user_pgd((uintptr_t)new_pgd);
     return -1;
   }
 
@@ -147,7 +148,7 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
   if (map_user_page(new_pgd, USER_STACK_TOP - PAGE_SIZE, spa, stack_attrs) !=
       0) {
     free_page(sp);
-    free_user_pgd(new_pgd);
+    free_user_pgd((uintptr_t)new_pgd);
     return -1;
   }
 
@@ -156,11 +157,11 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
   t->sp_el0 = USER_STACK_TOP;
 
   if (t == current_task) {
-    switch_user_pgd(new_pgd);
+    set_ttbr0((uintptr_t)new_pgd);
   }
 
   if (old_pgd) {
-    free_user_pgd(old_pgd);
+    free_user_pgd((uintptr_t)old_pgd);
   }
 
   return 0;

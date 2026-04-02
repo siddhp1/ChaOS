@@ -2,75 +2,25 @@
 
 #include <stdint.h>
 
-#include "kernel/printk.h"
 #include "mm/pgtable.h"
 #include "mm/tlb.h"
 
-// Identity mapping (TTBR0)
-static uint64_t l0_table[512] __attribute__((aligned(0x1000)));
-static uint64_t l1_table[512] __attribute__((aligned(0x1000)));
+#define MAIR_ATTR_DEVICE 0x00
+#define MAIR_ATTR_NORMAL 0xFF
+#define MAIR_VALUE ((MAIR_ATTR_DEVICE << 0) | (MAIR_ATTR_NORMAL << 8))
 
-// Higher-half mapping (TTBR1)
-static uint64_t l0_table_hi[512] __attribute__((aligned(0x1000)));
-static uint64_t l1_table_hi[512] __attribute__((aligned(0x1000)));
-static uint64_t l2_table_device[512] __attribute__((aligned(0x1000)));
-
-uint64_t* get_kernel_l0_table(void) { return l0_table_hi; }
-
-void setup_page_tables(void) {
-  for (int i = 0; i < 512; i++) {
-    l0_table[i] = 0;
-    l1_table[i] = 0;
-    l0_table_hi[i] = 0;
-    l1_table_hi[i] = 0;
-    l2_table_device[i] = 0;
-  }
-
-  l1_table[0] =
-      (0x00000000ULL) | PTE_VALID | PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(0);
-  l1_table[1] =
-      (0x40000000ULL) | PTE_VALID | PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(1);
-
-  uintptr_t l1_base = (uintptr_t)l1_table;
-  l0_table[0] = (l1_base & 0x0000FFFFFFFFF000ULL) | PTE_VALID | PTE_TABLE;
-
-  for (int i = 0; i < 512; i++) {
-    uintptr_t phys = (uintptr_t)(i * L2_BLOCK_SIZE);
-    l2_table_device[i] = (phys & 0x0000FFFFFFE00000ULL) | PTE_VALID | PTE_AF |
-                         PTE_SH_INNER | PTE_ATTRINDX(0) | PTE_UXN | PTE_PXN;
-  }
-  uintptr_t l2_device_base = (uintptr_t)l2_table_device;
-  l1_table_hi[0] =
-      (l2_device_base & 0x0000FFFFFFFFF000ULL) | PTE_VALID | PTE_TABLE;
-  l1_table_hi[1] =
-      (PHYS_KERNEL_BASE) | PTE_VALID | PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(1);
-
-  uintptr_t l1_hi_base = (uintptr_t)l1_table_hi;
-  l0_table_hi[0] = (l1_hi_base & 0x0000FFFFFFFFF000ULL) | PTE_VALID | PTE_TABLE;
-}
-
-static inline void write_mair_el1(uint64_t val) {
-  asm volatile("msr MAIR_EL1, %0" ::"r"(val));
-}
-
-static inline void write_tcr_el1(uint64_t val) {
-  asm volatile("msr TCR_EL1, %0" ::"r"(val));
-}
-
-static inline void write_ttbr0_el1(uintptr_t val) {
-  asm volatile("msr TTBR0_EL1, %0" ::"r"(val));
-}
-
-static inline void write_ttbr1_el1(uintptr_t val) {
-  asm volatile("msr TTBR1_EL1, %0" ::"r"(val));
-}
+#define TCR_T0SZ 16   // 48-bit virtual addresses for TTBR0
+#define TCR_T1SZ 16   // 48-bit virtual addresses for TTBR1
+#define TCR_TG0 0b00  // 4 KiB granule size
+#define TCR_TG1 0b10  // 4 KiB granule size
+#define TCR_VALUE \
+  ((TCR_T0SZ << 0) | (TCR_T1SZ << 16) | (TCR_TG0 << 14) | (TCR_TG1 << 30))
 
 void enable_mmu(uintptr_t ttbr0, uintptr_t ttbr1) {
-  write_mair_el1(MAIR_VALUE);
-  write_tcr_el1(TCR_VALUE);
-
-  write_ttbr0_el1(ttbr0);
-  write_ttbr1_el1(ttbr1);
+  asm volatile("msr MAIR_EL1, %0" ::"r"(MAIR_VALUE));
+  asm volatile("msr TCR_EL1, %0" ::"r"(TCR_VALUE));
+  asm volatile("msr TTBR0_EL1, %0" ::"r"(ttbr0));
+  asm volatile("msr TTBR1_EL1, %0" ::"r"(ttbr1));
 
   asm volatile("dsb ishst" ::: "memory");
   asm volatile("isb");
@@ -79,15 +29,21 @@ void enable_mmu(uintptr_t ttbr0, uintptr_t ttbr1) {
 
   uint64_t sctlr;
   asm volatile("mrs %0, SCTLR_EL1" : "=r"(sctlr));
-
   // 0: MMU enable; 2: data cache enable; 12: instruction cache enable
   sctlr |= (1 << 0) | (1 << 2) | (1 << 12);
   asm volatile("msr SCTLR_EL1, %0" ::"r"(sctlr));
 
+  asm volatile("dsb ishst" ::: "memory");
   asm volatile("isb");
 }
 
 void mmu_init(void) {
-  setup_page_tables();
-  enable_mmu((uintptr_t)l0_table, (uintptr_t)l0_table_hi);
+  uintptr_t l0_identity_table = setup_identity_tables();
+  uintptr_t l0_higher_half_table = setup_higher_half_tables();
+  enable_mmu(l0_identity_table, l0_higher_half_table);
+}
+
+void set_ttbr0(uintptr_t phys) {
+  asm volatile("msr TTBR0_EL1, %0" ::"r"(phys) : "memory");
+  tlb_flush_all();
 }

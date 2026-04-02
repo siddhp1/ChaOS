@@ -49,4 +49,7 @@ SECTIONS {
     . = ALIGN(16);
     . = . + 0x4000;
     stack_top = .;
+
+    . = ALIGN(4096);
+    page_start = .;
 }

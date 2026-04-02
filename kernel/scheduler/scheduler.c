@@ -9,6 +9,7 @@
 #include "kernel/scheduler/reaper.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
+#include "mm/mmu.h"
 #include "mm/pgtable.h"
 
 // TODO: Sync with vectors.S
@@ -167,7 +168,7 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
 
   if (next->mode == TASK_MODE_USER) {
     asm volatile("msr SP_EL0, %0" ::"r"(next->sp_el0) : "memory");
-    switch_user_pgd((uint64_t*)next->ttbr0);
+    set_ttbr0(next->ttbr0);
   }
 
   return next->irq_sp;

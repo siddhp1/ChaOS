@@ -111,7 +111,7 @@ void kernel_entry(void) {
   }
 
   // TODO: Organize
-  switch_user_pgd((uint64_t*)current_task->ttbr0);
+  set_ttbr0(current_task->ttbr0);
   context_switch(&boot_context, &current_task->context);
 
   while (1) asm volatile("wfi");  // Unreachable
