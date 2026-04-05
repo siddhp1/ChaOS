@@ -9,6 +9,8 @@
 #include "kernel/uart.h"
 #include "syscall_handlers.h"
 
+#define IRQ_OFF_USER_SP (16 * 17)
+
 static syscall_fn_t syscall_table[SYS_MAX] = {
     [SYS_WRITE] = sys_write, [SYS_EXIT] = sys_exit, [SYS_EXECVE] = sys_execve,
     [SYS_FORK] = sys_fork,   [SYS_READ] = sys_read,
@@ -31,9 +33,9 @@ long syscall_dispatch(long nr, long a0, long a1, long a2, long a3, long a4,
 void handle_el0_sync(void* frame) {
   struct trapframe* tf = (struct trapframe*)frame;
 
-  // Ensure irq sp is not stale
   if (current_task) {
-    current_task->irq_sp = (uint64_t)frame;
+    current_task->sp_el0 = *(uint64_t*)(frame + IRQ_OFF_USER_SP);
+    current_task->irq_sp = (uint64_t)frame;  // Ensure irq sp is not stale
   }
 
   uint64_t esr;

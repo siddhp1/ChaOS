@@ -197,9 +197,6 @@ sync_el0:
 
 handle_svc:
     mov x0, sp
-    bl save_user_sp_el0
-
-    mov x0, sp
     bl handle_el0_sync
 
     ldr x0, [sp, #IRQ_OFF_USER_SP]

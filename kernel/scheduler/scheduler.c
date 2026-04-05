@@ -173,12 +173,3 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
 
   return next->irq_sp;
 }
-
-void save_user_sp_el0(uint64_t irq_sp) {
-  if (!current_task || current_task->mode != TASK_MODE_USER) {
-    return;
-  }
-
-  uint64_t* user_sp_ptr = (uint64_t*)(irq_sp + IRQ_OFF_USER_SP);
-  current_task->sp_el0 = *user_sp_ptr;
-}
