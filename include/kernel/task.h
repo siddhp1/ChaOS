@@ -47,6 +47,7 @@ struct task {
 
 void* alloc_stack(void);
 struct task* alloc_task(void);
+void create_irq_frame(struct task* task);
 
 void set_task_state(struct task* task, enum task_state new_state);
 void destroy_task(struct task* task);

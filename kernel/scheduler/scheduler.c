@@ -12,14 +12,6 @@
 #include "mm/mmu.h"
 #include "mm/pgtable.h"
 
-// TODO: Sync with vectors.S
-#define IRQ_OFF_ELR_SPSR (16 * 16)
-#define IRQ_OFF_USER_SP (16 * 17)
-#define IRQ_FRAME_SIZE (16 * 18)
-#define SPSR_EL1H (0x5)  // EL1h, interrupts unmasked
-
-#define USER_STACK_TOP 0x0000000080000000ULL  // 2 GiB
-
 #define REAP_TICKS 100
 
 volatile uint64_t system_tick = 0;
@@ -149,21 +141,6 @@ uint64_t scheduler_irq_exit(uint64_t irq_sp) {
   struct task* next = get_next_task();
   if (!next || next == prev) {
     return irq_sp;
-  }
-
-  if (next->irq_sp == 0) {
-    // Create a synthetic IRQ frame on the new task's stack
-    uint64_t frame_sp = next->context.sp - IRQ_FRAME_SIZE;
-
-    memset((void*)frame_sp, 0, IRQ_FRAME_SIZE);
-
-    volatile uint64_t* elr_spsr =
-        (volatile uint64_t*)(frame_sp + IRQ_OFF_ELR_SPSR);
-
-    elr_spsr[0] = next->context.lr;
-    elr_spsr[1] = SPSR_EL1H;
-
-    next->irq_sp = frame_sp;
   }
 
   if (next->mode == TASK_MODE_USER) {

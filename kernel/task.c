@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 
+#include "kernel/irq_frame.h"
 #include "kernel/printk.h"
 #include "kernel/string.h"
 #include "mm/kmap.h"
@@ -33,6 +34,19 @@ struct task* alloc_task(void) {
   t->sibling_next = NULL;
 
   return t;
+}
+
+void create_irq_frame(struct task* task) {
+  uint64_t frame_sp = task->context.sp - IRQ_FRAME_SIZE;
+  memset((void*)frame_sp, 0, IRQ_FRAME_SIZE);
+
+  volatile uint64_t* elr_spsr =
+      (volatile uint64_t*)(frame_sp + IRQ_OFF_ELR_SPSR);
+
+  elr_spsr[0] = task->context.lr;
+  elr_spsr[1] = SPSR_EL1H;
+
+  task->irq_sp = frame_sp;
 }
 
 void destroy_task(struct task* task) {

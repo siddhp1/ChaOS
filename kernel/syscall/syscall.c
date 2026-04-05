@@ -3,13 +3,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "kernel/irq_frame.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/trap.h"
 #include "kernel/uart.h"
 #include "syscall_handlers.h"
-
-#define IRQ_OFF_USER_SP (16 * 17)
 
 static syscall_fn_t syscall_table[SYS_MAX] = {
     [SYS_WRITE] = sys_write, [SYS_EXIT] = sys_exit, [SYS_EXECVE] = sys_execve,

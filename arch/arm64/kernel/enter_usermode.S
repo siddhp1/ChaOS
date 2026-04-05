@@ -1,12 +1,11 @@
+#include "kernel/irq_frame.h"
+
 .section .text
 .global enter_usermode
 
 // void enter_usermode(uint64_t pc, uint64_t sp)
 enter_usermode:
-    // SPSR_EL1: User mode (EL0t), interrupts enabled
-    // D=0, A=0, I=0, F=0 (debug, SError, IRQ, FIQ all unmasked)
-    // M[4:0] = 0b00000 (EL0t)
-    mov x2, #0x0
+    mov x2, SPSR_EL0
     msr SPSR_EL1, x2
 
     msr ELR_EL1, x0

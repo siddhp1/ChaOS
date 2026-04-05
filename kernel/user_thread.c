@@ -93,6 +93,8 @@ struct task* create_user_process(void* code, size_t code_size) {
   t->stack = (uint64_t)kstack;
   t->time_slice = DEFAULT_TIME_SLICE;
 
+  create_irq_frame(t);
+
   enqueue_task(t);
   return t;
 }
