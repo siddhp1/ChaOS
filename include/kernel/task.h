@@ -24,17 +24,15 @@ struct task {
   void (*fn)(void*);
   void* arg;
 
-  uint64_t stack;
-
-  // saved irq frame base (sp after sub sp, sp, #irq_frame_size)
-  uint64_t irq_sp;
+  uintptr_t stack;
+uintptr_t irq_sp;
 
   int32_t time_slice;
   uint64_t wakeup_tick;
 
   enum task_mode mode;
-  uint64_t ttbr0;
-  uint64_t sp_el0;
+  uintptr_t ttbr0;
+  uintptr_t sp_el0;
 
   int32_t exit_status;
 
