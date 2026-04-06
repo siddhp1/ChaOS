@@ -4,24 +4,18 @@
 
 #include "kernel/irq.h"
 #include "kernel/pid.h"
+#include "kernel/scheduler/reaper.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/task.h"
 
 #define KSTACK_SIZE 4096
 
 static void kthread_entry(void) {
-  irq_enable();
-
   current_task->fn(current_task->arg);
 
-  irq_disable();
-  current_task->state = TASK_ZOMBIE;
-  need_schedule = true;
-  irq_enable();
+  task_zombie(current_task);
 
-  while (1) {
-    asm volatile("WFI");
-  }
+  yield();
 }
 
 struct task* kthread_create(void (*fn)(void*), void* arg) {
@@ -53,7 +47,6 @@ struct task* kthread_create(void (*fn)(void*), void* arg) {
   t->time_slice = DEFAULT_TIME_SLICE;
 
   t->mode = TASK_MODE_KERNEL;
-  t->ttbr0 = 0;
 
   t->next = NULL;
 
