@@ -5,6 +5,9 @@
 
 #include "kernel/cpu_context.h"
 
+// Number of hardware timer interrupts before scheduling
+#define DEFAULT_TIME_SLICE 1
+
 enum task_mode { TASK_MODE_KERNEL, TASK_MODE_USER };
 
 enum task_state {
@@ -25,7 +28,7 @@ struct task {
   void* arg;
 
   uintptr_t stack;
-uintptr_t irq_sp;
+  uintptr_t irq_sp;
 
   int32_t time_slice;
   uint64_t wakeup_tick;
@@ -46,8 +49,6 @@ uintptr_t irq_sp;
 void* alloc_stack(void);
 struct task* alloc_task(void);
 void create_irq_frame(struct task* task);
-
-void set_task_state(struct task* task, enum task_state new_state);
 void destroy_task(struct task* task);
 
 #endif

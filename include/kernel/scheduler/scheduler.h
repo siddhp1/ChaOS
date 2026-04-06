@@ -5,9 +5,6 @@
 
 #include "kernel/task.h"
 
-// Number of hardware timer interrupts before scheduling
-#define DEFAULT_TIME_SLICE 1
-
 extern struct task* ready_queue;
 extern struct task* current_task;
 extern volatile bool need_schedule;

@@ -12,8 +12,6 @@
 #include "mm/mmu.h"
 #include "mm/pgtable.h"
 
-#define REAP_TICKS 100
-
 volatile uint64_t system_tick = 0;
 
 struct task* ready_queue = NULL;
@@ -133,6 +131,7 @@ uint64_t schedule(uint64_t irq_sp) {
 
   struct task* prev = current_task;
 
+  // TODO: Think about this
   if (prev && prev->mode == TASK_MODE_USER) {
     uint64_t sp_el0;
     asm volatile("mrs %0, SP_EL0" : "=r"(sp_el0));
