@@ -24,7 +24,7 @@ long sys_exit(long status, long a1, long a2, long a3, long a4, long a5) {
   set_ttbr0(0);
 
   task_zombie(current_task);
-  schedule();
+  yield();
 
   return 0;
 }

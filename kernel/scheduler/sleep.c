@@ -58,7 +58,7 @@ void task_sleep(uint64_t ticks, struct task* task) {
 
   irq_enable();
 
-  schedule();
+  yield();
 }
 
 void check_sleeping_tasks(void) {

@@ -115,12 +115,13 @@ struct task* get_next_task(void) {
   return next;
 }
 
-void schedule(void) {
+void yield(void) {
   need_schedule = true;
+  // TODO: Trigger a reschedule immediately
   asm volatile("WFI");
 }
 
-uint64_t scheduler_irq_exit(uint64_t irq_sp) {
+uint64_t schedule(uint64_t irq_sp) {
   if (current_task) {
     current_task->irq_sp = irq_sp;
   }

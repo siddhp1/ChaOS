@@ -41,7 +41,7 @@ void wait_event(struct task* task) {
   enqueue_wait_task(task);
 
   irq_enable();
-  schedule();
+  yield();
 }
 
 void wake_up(void) {

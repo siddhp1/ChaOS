@@ -99,7 +99,7 @@ irq_el1h:
     bl irq_handler
 
     mov x0, sp
-    bl scheduler_irq_exit
+    bl schedule
     mov sp, x0
 
     ldp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
