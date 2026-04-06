@@ -4,6 +4,7 @@
 #include "kernel/initramfs.h"
 #include "kernel/irq.h"
 #include "kernel/kthread.h"
+#include "kernel/panic.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/scheduler/sleep.h"
@@ -106,13 +107,10 @@ void kernel_entry(void) {
 
   struct task* init_task = load_init();
   if (!init_task) {
-    printk("Cannot launch init\n");
-    while (1) asm volatile("wfi");
+    printk("Failed to load init\n");
   }
 
-  // TODO: Organize
-  set_ttbr0(current_task->ttbr0);
   context_switch(&boot_context, &current_task->context);
 
-  while (1) asm volatile("wfi");  // Unreachable
+  panic("Failed to switch from boot context");
 }

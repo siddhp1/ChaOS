@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "kernel/kthread.h"
+#include "kernel/panic.h"
 #include "kernel/pid.h"
 #include "kernel/process.h"
 #include "kernel/scheduler/scheduler.h"
@@ -28,7 +29,8 @@ static void user_mode_entry(void* arg) {
 
   enter_usermode(USER_VIRT_ENTRY, USER_STACK_TOP);
 
-  while (1);
+  // TODO: Error and kill
+  panic("Failed to enter usermode");
 }
 
 struct task* create_user_process(void* code, size_t code_size) {
