@@ -11,7 +11,6 @@ LDFLAGS = -T kernel_linker.ld
 
 SRC = \
 	arch/arm64/boot/kernel_boot.S \
-	arch/arm64/kernel/context_switch.S \
 	arch/arm64/kernel/cpu.c \
 	arch/arm64/kernel/enter_usermode.S \
 	arch/arm64/kernel/exception.c \

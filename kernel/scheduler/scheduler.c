@@ -18,17 +18,20 @@ struct task* ready_queue = NULL;
 struct task* current_task = NULL;
 volatile bool need_schedule = false;
 
+static struct task boot_task;
 static struct task* idle_task = NULL;
 
-void idle_thread(void* arg) { while (1); }
-
 void scheduler_init(void) {
-  idle_task = kthread_create(idle_thread, NULL);
+  memset(&boot_task, 0, sizeof(boot_task));
 
-  idle_task->state = TASK_RUNNING;
+  boot_task.pid = 0;
+  boot_task.state = TASK_RUNNING;
+  boot_task.mode = TASK_MODE_KERNEL;
+  boot_task.time_slice = DEFAULT_TIME_SLICE;
+  boot_task.ttbr0 = 0;
+
+  idle_task = &boot_task;
   current_task = idle_task;
-
-  need_schedule = false;
 }
 
 void scheduler_tick(void) {

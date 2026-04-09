@@ -22,10 +22,6 @@
 #define DELAY_CYCLES 10000000
 #define SLEEP_TICKS 100
 
-extern void context_switch(struct cpu_context* a, struct cpu_context* b);
-
-static struct cpu_context boot_context;
-
 void thread_a(void* arg) {
   while (1) {
     printk("A\n");
@@ -110,7 +106,9 @@ void kernel_entry(void) {
     printk("Failed to load init\n");
   }
 
-  context_switch(&boot_context, &current_task->context);
-
-  panic("Failed to switch from boot context");
+  irq_enable();
+  yield();
+  while (1) {
+    asm volatile("WFI");
+  }
 }
