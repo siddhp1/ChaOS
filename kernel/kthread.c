@@ -8,8 +8,6 @@
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/task.h"
 
-#define KSTACK_SIZE 4096
-
 static void kthread_entry(void) {
   current_task->fn(current_task->arg);
 
@@ -29,10 +27,7 @@ struct task* kthread_create(void (*fn)(void*), void* arg) {
     return NULL;
   }
 
-  uint64_t stack_top = (uint64_t)stack_base + KSTACK_SIZE;
-
-  t->context.sp = stack_top;
-  t->context.lr = (uint64_t)kthread_entry;
+  uintptr_t stack_top = (uintptr_t)stack_base + KSTACK_SIZE;
 
   t->state = TASK_READY;
   t->pid = pid_alloc();
@@ -40,9 +35,9 @@ struct task* kthread_create(void (*fn)(void*), void* arg) {
   t->fn = fn;
   t->arg = arg;
 
-  t->stack = (uint64_t)stack_base;
+  t->stack = (uintptr_t)stack_base;
 
-  t->irq_sp = (uint64_t)NULL;
+  t->irq_sp = (uintptr_t)NULL;
 
   t->time_slice = DEFAULT_TIME_SLICE;
 
@@ -50,7 +45,7 @@ struct task* kthread_create(void (*fn)(void*), void* arg) {
 
   t->next = NULL;
 
-  create_irq_frame(t);
+  create_irq_frame(t, stack_top, (uintptr_t)kthread_entry);
 
   enqueue_task(t);
 

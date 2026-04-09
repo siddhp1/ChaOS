@@ -110,22 +110,6 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   printk("Child frame at: %lx\n", child_frame_addr);
   printk("Child x0 (return value): %lx\n", child_frame->regs[0]);
 
-  child->context.sp = child_frame_addr;
-  child->context.lr = (uint64_t)fork_child_return;
-
-  // TODO: Switch to memcpy
-  child->context.x19 = parent->context.x19;
-  child->context.x20 = parent->context.x20;
-  child->context.x21 = parent->context.x21;
-  child->context.x22 = parent->context.x22;
-  child->context.x23 = parent->context.x23;
-  child->context.x24 = parent->context.x24;
-  child->context.x25 = parent->context.x25;
-  child->context.x26 = parent->context.x26;
-  child->context.x27 = parent->context.x27;
-  child->context.x28 = parent->context.x28;
-  child->context.fp = parent->context.fp;
-
   child->irq_sp = child_frame_addr;
 
   child->pid = pid_alloc();

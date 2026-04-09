@@ -81,12 +81,11 @@ struct task* create_user_process(void* code, size_t code_size) {
     return NULL;
   }
 
+  uintptr_t kstack_top = (uintptr_t)kstack + KSTACK_SIZE;
+
   t->irq_sp = (uint64_t)NULL;
 
   t->sp_el0 = USER_STACK_TOP;
-
-  t->context.sp = (uint64_t)kstack + 4096;
-  t->context.lr = (uint64_t)user_mode_entry;
 
   t->state = TASK_READY;
   t->pid = pid_alloc();
@@ -95,7 +94,7 @@ struct task* create_user_process(void* code, size_t code_size) {
   t->stack = (uint64_t)kstack;
   t->time_slice = DEFAULT_TIME_SLICE;
 
-  create_irq_frame(t);
+  create_irq_frame(t, kstack_top, (uintptr_t)user_mode_entry);
 
   enqueue_task(t);
   return t;

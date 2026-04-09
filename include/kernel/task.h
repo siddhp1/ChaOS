@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 
-#include "kernel/cpu_context.h"
-
 // Number of hardware timer interrupts before scheduling
 #define DEFAULT_TIME_SLICE 1
+
+#define KSTACK_SIZE 4096
 
 enum task_mode { TASK_MODE_KERNEL, TASK_MODE_USER };
 
@@ -19,8 +19,6 @@ enum task_state {
 };
 
 struct task {
-  struct cpu_context context;
-
   enum task_state state;
   int32_t pid;
 
@@ -48,7 +46,8 @@ struct task {
 
 void* alloc_stack(void);
 struct task* alloc_task(void);
-void create_irq_frame(struct task* task);
+void create_irq_frame(struct task* task, uintptr_t stack_top,
+                      uintptr_t entry_fn);
 void destroy_task(struct task* task);
 
 #endif
