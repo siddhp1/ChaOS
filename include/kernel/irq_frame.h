@@ -25,4 +25,17 @@
 #define SPSR_EL0 0x0
 #define SPSR_EL1H 0x5
 
+#ifndef __ASSEMBLER__
+#include <stdint.h>
+
+typedef struct irq_frame {
+  uint64_t x[31];
+  uint64_t _pad_x30;
+  uint64_t elr_el1;
+  uint64_t spsr_el1;
+  uint64_t sp_el0;
+  uint64_t _pad_sp;
+} trapframe;
+
+#endif
 #endif

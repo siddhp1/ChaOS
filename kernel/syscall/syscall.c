@@ -6,7 +6,6 @@
 #include "kernel/irq_frame.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler/scheduler.h"
-#include "kernel/trap.h"
 #include "kernel/uart.h"
 #include "syscall_handlers.h"
 
@@ -30,10 +29,9 @@ long syscall_dispatch(long nr, long a0, long a1, long a2, long a3, long a4,
 }
 
 void handle_el0_sync(void* frame) {
-  struct trapframe* tf = (struct trapframe*)frame;
+  trapframe* tf = (trapframe*)frame;
 
   if (current_task) {
-    current_task->sp_el0 = *(uint64_t*)(frame + IRQ_OFF_USER_SP);
     current_task->irq_sp = (uint64_t)frame;  // Ensure irq sp is not stale
   }
 

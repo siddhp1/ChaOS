@@ -96,11 +96,17 @@ irq_el1h:
     mrs x1, spsr_el1
     stp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
 
+    mrs x0, SP_EL0
+    str x0, [sp, #IRQ_OFF_USER_SP]
+
     bl irq_handler
 
     mov x0, sp
     bl schedule
     mov sp, x0
+
+    ldr x0, [sp, #IRQ_OFF_USER_SP]
+    msr SP_EL0, x0
 
     ldp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
     msr elr_el1, x0

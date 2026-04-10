@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "kernel/irq_frame.h"
 #include "kernel/pid.h"
 #include "kernel/printk.h"
 #include "kernel/process.h"
@@ -12,17 +13,6 @@
 #include "mm/pgtable.h"
 #include "mm/user_pgtable.h"
 #include "syscall_handlers.h"
-
-// TODO: Sync with vectors
-#define IRQ_FRAME_SIZE 288
-
-struct irq_frame {
-  uint64_t regs[31];
-  uint64_t elr_el1;
-  uint64_t spsr_el1;
-  uint64_t sp_el0;
-  uint64_t padding;
-};
 
 extern void fork_child_return(void);
 
@@ -76,7 +66,6 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
 
   child->ttbr0 = child_pgd_phys;
   child->mode = TASK_MODE_USER;
-  child->sp_el0 = parent->sp_el0;
 
   printk("sys_fork: Allocating kernel stack\n");
   void* child_kstack = alloc_stack();
@@ -105,10 +94,10 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   memcpy(child_frame, parent_frame, IRQ_FRAME_SIZE);
 
   // Child returns 0 from fork
-  child_frame->regs[0] = 0;
+  child_frame->x[0] = 0;
 
   printk("Child frame at: %lx\n", child_frame_addr);
-  printk("Child x0 (return value): %lx\n", child_frame->regs[0]);
+  printk("Child x0 (return value): %lx\n", child_frame->x[0]);
 
   child->irq_sp = child_frame_addr;
 

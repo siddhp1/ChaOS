@@ -1,9 +1,9 @@
 #include <stdint.h>
 
 #include "kernel/initramfs.h"
+#include "kernel/irq_frame.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/task.h"
-#include "kernel/trap.h"
 #include "kernel/user_access.h"
 #include "kernel/user_thread.h"
 #include "mm/mmu.h"
@@ -55,14 +55,13 @@ long sys_execve(long pathname, long argv, long envp, long a3, long a4,
 
   if (load_user_image(current_task, f->data, f->size) != 0) return -1;
 
-  struct trapframe* frame = (struct trapframe*)current_task->irq_sp;
+  trapframe* frame = (trapframe*)current_task->irq_sp;
   if (!frame) return -1;
 
   frame->elr_el1 = USER_VIRT_ENTRY;
   frame->sp_el0 = USER_STACK_TOP;
   frame->x[0] = 0;
 
-  current_task->sp_el0 = USER_STACK_TOP;
   set_ttbr0(current_task->ttbr0);
 
   return 0;

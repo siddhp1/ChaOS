@@ -29,15 +29,11 @@ struct task* alloc_task(void) {
 
   memset(t, 0, sizeof(*t));
 
-  t->parent = NULL;
-  t->first_child = NULL;
-  t->sibling_next = NULL;
-
   return t;
 }
 
 void create_irq_frame(struct task* task, uintptr_t stack_top,
-                      uintptr_t entry_fn) {
+                      uintptr_t entry_fn, uintptr_t user_stack_top) {
   uint64_t frame_sp = stack_top - IRQ_FRAME_SIZE;
   memset((void*)frame_sp, 0, IRQ_FRAME_SIZE);
 
@@ -46,6 +42,9 @@ void create_irq_frame(struct task* task, uintptr_t stack_top,
 
   elr_spsr[0] = entry_fn;
   elr_spsr[1] = SPSR_EL1H;
+
+  volatile uint64_t* sp_el0 = (volatile uint64_t*)(frame_sp + IRQ_OFF_USER_SP);
+  *sp_el0 = user_stack_top;
 
   task->irq_sp = frame_sp;
 }

@@ -33,7 +33,6 @@ struct task {
 
   enum task_mode mode;
   uintptr_t ttbr0;
-  uintptr_t sp_el0;
 
   int32_t exit_status;
 
@@ -47,7 +46,7 @@ struct task {
 void* alloc_stack(void);
 struct task* alloc_task(void);
 void create_irq_frame(struct task* task, uintptr_t stack_top,
-                      uintptr_t entry_fn);
+                      uintptr_t entry_fn, uintptr_t user_stack_top);
 void destroy_task(struct task* task);
 
 #endif

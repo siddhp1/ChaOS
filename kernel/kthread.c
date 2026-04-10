@@ -45,7 +45,7 @@ struct task* kthread_create(void (*fn)(void*), void* arg) {
 
   t->next = NULL;
 
-  create_irq_frame(t, stack_top, (uintptr_t)kthread_entry);
+  create_irq_frame(t, stack_top, (uintptr_t)kthread_entry, 0);
 
   enqueue_task(t);
 

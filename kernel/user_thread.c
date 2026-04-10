@@ -85,8 +85,6 @@ struct task* create_user_process(void* code, size_t code_size) {
 
   t->irq_sp = (uint64_t)NULL;
 
-  t->sp_el0 = USER_STACK_TOP;
-
   t->state = TASK_READY;
   t->pid = pid_alloc();
   t->fn = user_mode_entry;
@@ -94,7 +92,7 @@ struct task* create_user_process(void* code, size_t code_size) {
   t->stack = (uint64_t)kstack;
   t->time_slice = DEFAULT_TIME_SLICE;
 
-  create_irq_frame(t, kstack_top, (uintptr_t)user_mode_entry);
+  create_irq_frame(t, kstack_top, (uintptr_t)user_mode_entry, USER_STACK_TOP);
 
   enqueue_task(t);
   return t;
@@ -157,7 +155,6 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
 
   uint64_t* old_pgd = (uint64_t*)t->ttbr0;
   t->ttbr0 = (uint64_t)new_pgd;
-  t->sp_el0 = USER_STACK_TOP;
 
   if (t == current_task) {
     set_ttbr0((uintptr_t)new_pgd);

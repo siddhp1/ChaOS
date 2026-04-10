@@ -133,21 +133,12 @@ uint64_t schedule(uint64_t irq_sp) {
   need_schedule = false;
 
   struct task* prev = current_task;
-
-  // TODO: Think about this
-  if (prev && prev->mode == TASK_MODE_USER) {
-    uint64_t sp_el0;
-    asm volatile("mrs %0, SP_EL0" : "=r"(sp_el0));
-    prev->sp_el0 = sp_el0;
-  }
-
   struct task* next = get_next_task();
   if (!next || next == prev) {
     return irq_sp;
   }
 
   if (next->mode == TASK_MODE_USER) {
-    asm volatile("msr SP_EL0, %0" ::"r"(next->sp_el0) : "memory");
     set_ttbr0(next->ttbr0);
   }
 
