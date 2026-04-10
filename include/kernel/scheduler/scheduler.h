@@ -7,7 +7,6 @@
 
 extern struct task* ready_queue;
 extern struct task* current_task;
-extern volatile bool need_schedule;
 extern volatile uint64_t system_tick;
 
 void yield(void);

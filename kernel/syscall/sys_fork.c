@@ -102,7 +102,6 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   child->irq_sp = child_frame_addr;
 
   child->pid = pid_alloc();
-  child->state = TASK_READY;
   child->time_slice = DEFAULT_TIME_SLICE;
   child->exit_status = 0;
 

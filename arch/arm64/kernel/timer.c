@@ -44,7 +44,6 @@ void timer_interrupt(void* unused) {
                : "memory");
 
   printk("TICK\n");
-  scheduler_tick();
   system_tick++;
-  check_sleeping_tasks();
+  scheduler_tick();
 }

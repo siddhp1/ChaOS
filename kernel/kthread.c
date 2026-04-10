@@ -29,7 +29,6 @@ struct task* kthread_create(void (*fn)(void*), void* arg) {
 
   uintptr_t stack_top = (uintptr_t)stack_base + KSTACK_SIZE;
 
-  t->state = TASK_READY;
   t->pid = pid_alloc();
 
   t->fn = fn;

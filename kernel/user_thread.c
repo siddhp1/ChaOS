@@ -85,7 +85,6 @@ struct task* create_user_process(void* code, size_t code_size) {
 
   t->irq_sp = (uint64_t)NULL;
 
-  t->state = TASK_READY;
   t->pid = pid_alloc();
   t->fn = user_mode_entry;
   t->arg = NULL;

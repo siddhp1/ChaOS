@@ -7,6 +7,7 @@
 #include "kernel/irq.h"
 #include "kernel/kthread.h"
 #include "kernel/scheduler/reaper.h"
+#include "kernel/scheduler/sleep.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
 #include "mm/mmu.h"
@@ -46,6 +47,8 @@ void scheduler_tick(void) {
     need_schedule = true;
   }
 
+  check_sleeping_tasks();
+
   if (system_tick % REAP_TICKS == 0) {
     reap_zombies();
   }
@@ -56,6 +59,7 @@ void enqueue_task(struct task* task) {
     return;
   }
 
+  task->state = TASK_READY;
   task->next = NULL;
 
   if (!ready_queue) {
@@ -98,7 +102,6 @@ struct task* get_next_task(void) {
   }
 
   if (current_task && current_task->state == TASK_RUNNING) {
-    current_task->state = TASK_READY;
     if (current_task != idle_task) {
       enqueue_task(current_task);
     }
