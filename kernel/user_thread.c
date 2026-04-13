@@ -19,18 +19,18 @@
 #define USER_STACK_SIZE 4096
 #define USER_STACK_TOP USER_VIRT_END
 
-extern void enter_usermode(uint64_t pc, uint64_t sp);
+extern void enter_user_mode(uint64_t pc, uint64_t sp);
 
-static void user_mode_entry(void* arg) {
+static void setup_user_mode(void* arg) {
   (void)arg;
   struct task* t = current_task;
 
   set_ttbr0(t->ttbr0);
 
-  enter_usermode(USER_VIRT_ENTRY, USER_STACK_TOP);
+  enter_user_mode(USER_VIRT_ENTRY, USER_STACK_TOP);
 
   // TODO: Error and kill
-  panic("Failed to enter usermode");
+  panic("Failed to enter user mode");
 }
 
 struct task* create_user_process(void* code, size_t code_size) {
@@ -86,12 +86,12 @@ struct task* create_user_process(void* code, size_t code_size) {
   t->irq_sp = (uint64_t)NULL;
 
   t->pid = pid_alloc();
-  t->fn = user_mode_entry;
+  t->fn = setup_user_mode;
   t->arg = NULL;
   t->stack = (uint64_t)kstack;
   t->time_slice = DEFAULT_TIME_SLICE;
 
-  create_irq_frame(t, kstack_top, (uintptr_t)user_mode_entry, USER_STACK_TOP);
+  create_irq_frame(t, kstack_top, (uintptr_t)setup_user_mode, USER_STACK_TOP);
 
   enqueue_task(t);
   return t;

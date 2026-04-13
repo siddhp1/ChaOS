@@ -1,10 +1,10 @@
 #include "kernel/irq_frame.h"
 
 .section .text
-.global enter_usermode
+.global enter_user_mode
 
-// void enter_usermode(uint64_t pc, uint64_t sp)
-enter_usermode:
+// void enter_user_mode(uint64_t pc, uint64_t sp)
+enter_user_mode:
     mov x2, SPSR_EL0
     msr SPSR_EL1, x2
 
