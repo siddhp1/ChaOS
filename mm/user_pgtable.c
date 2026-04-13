@@ -34,3 +34,14 @@ void free_user_pgd(uintptr_t pgd_phys) {
 
   free_page_table(pgd_phys, 0);
 }
+
+int map_user_page(uint64_t* l0_table_phys, uint64_t va, uint64_t phys,
+                  uint64_t attrs) {
+  struct page* pgd_page = phys_to_page((uint64_t)l0_table_phys);
+  if (!pgd_page) {
+    return -1;
+  }
+
+  uint64_t* l0_table = (uint64_t*)kmap(pgd_page);
+  return map_page_l3(l0_table, va, phys, attrs);
+}

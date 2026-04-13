@@ -179,17 +179,6 @@ void unmap_page_l3(uint64_t* l0_table, uint64_t va) {
   tlb_flush_addr(va);
 }
 
-int map_user_page(uint64_t* l0_table_phys, uint64_t va, uint64_t phys,
-                  uint64_t attrs) {
-  struct page* pgd_page = phys_to_page((uint64_t)l0_table_phys);
-  if (!pgd_page) {
-    return -1;
-  }
-
-  uint64_t* l0_table = (uint64_t*)kmap(pgd_page);
-  return map_page_l3(l0_table, va, phys, attrs);
-}
-
 // TODO: Switch to uintptr_t
 static int copy_page_contents(uint64_t dest_phys, uint64_t src_phys) {
   void* dest = kmap(phys_to_page(dest_phys));

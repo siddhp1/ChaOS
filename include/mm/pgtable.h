@@ -29,11 +29,7 @@ uintptr_t setup_higher_half_tables(void);
 
 uintptr_t alloc_page_table(void);
 
-// TODO: Place in global or internal header
 int map_page_l3(uint64_t* l0_table, uint64_t va, uint64_t phys, uint64_t attrs);
-
-int map_user_page(uint64_t* l0_table_phys, uint64_t va, uint64_t phys,
-                  uint64_t attrs);
 
 uint64_t* copy_user_pgd(uint64_t* src_pgd);
 
