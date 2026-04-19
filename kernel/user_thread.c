@@ -39,53 +39,27 @@ struct task* create_user_process(void* code, size_t code_size) {
     return NULL;
   }
 
+  t->mode = TASK_MODE_USER;
+  t->pid = pid_alloc();
+
   t->parent = current_task;
   if (current_task) {
     add_child(current_task, t);
   }
 
-  uint64_t* pgd = (uint64_t*)alloc_page_table();
-  if (!pgd) {
-    // TODO: Free task
-    return NULL;
-  }
-
-  t->mode = TASK_MODE_USER;
-  t->ttbr0 = (uint64_t)pgd;
-
   if (load_user_image(t, code, code_size) != 0) {
-    // TODO: Free task
-    return NULL;
-  }
-
-  struct page* stack_page = alloc_page();
-  if (!stack_page) {
-    // TODO: Cleanup
-    return NULL;
-  }
-
-  uint64_t stack_phys = page_to_phys(stack_page);
-
-  uint64_t stack_attrs =
-      PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(1) | PTE_USER | PTE_UXN | PTE_PXN;
-
-  uint64_t stack_va = USER_STACK_TOP - PAGE_SIZE;
-  if (map_user_page(pgd, stack_va, stack_phys, stack_attrs) != 0) {
-    // TODO: Cleanup
+    destroy_task(t);
     return NULL;
   }
 
   void* kstack = alloc_stack();
   if (!kstack) {
-    // TODO: Cleanup
+    destroy_task(t);
     return NULL;
   }
 
   uintptr_t kstack_top = (uintptr_t)kstack + KSTACK_SIZE;
-
   t->irq_sp = (uint64_t)NULL;
-
-  t->pid = pid_alloc();
   t->fn = setup_user_mode;
   t->arg = NULL;
   t->stack = (uint64_t)kstack;
@@ -145,8 +119,8 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
   uint64_t stack_attrs = PTE_PAGE | PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(1) |
                          PTE_USER | PTE_UXN | PTE_PXN;
 
-  if (map_user_page(new_pgd, USER_STACK_TOP - PAGE_SIZE, spa, stack_attrs) !=
-      0) {
+  uint64_t stack_va = USER_STACK_TOP - PAGE_SIZE;
+  if (map_user_page(new_pgd, stack_va, spa, stack_attrs) != 0) {
     free_page(sp);
     free_user_pgd((uintptr_t)new_pgd);
     return -1;
