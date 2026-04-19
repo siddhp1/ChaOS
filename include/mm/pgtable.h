@@ -22,6 +22,9 @@
 #define PTE_NLTA_MASK 0x0000FFFFFFFFF000ULL
 #define PTE_NLTA(pte) ((pte) & PTE_NLTA_MASK)
 
+#define PTE_L3_OAB_MASK 0x0000FFFFFFFFF000ULL
+#define PTE_L3_OAB(pte) ((pte) & PTE_L3_OAB_MASK)
+
 uint64_t* get_kernel_l0_table(void);
 
 uintptr_t setup_identity_tables(void);
@@ -31,6 +34,6 @@ uintptr_t alloc_page_table(void);
 
 int map_page_l3(uint64_t* l0_table, uint64_t va, uint64_t phys, uint64_t attrs);
 
-uint64_t* copy_user_pgd(uint64_t* src_pgd);
+uintptr_t copy_user_pgd(uint64_t* src_pgd);
 
 #endif

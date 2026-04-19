@@ -50,7 +50,7 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   uint64_t* parent_pgd_va = (uint64_t*)kmap(parent_pgd_page);
   printk("Parent PGD (virt): %lx\n", (uint64_t)parent_pgd_va);
 
-  uint64_t* child_pgd_va = copy_user_pgd(parent_pgd_va);
+  uintptr_t child_pgd_va = copy_user_pgd(parent_pgd_va);
   if (!child_pgd_va) {
     printk("sys_fork: Failed to copy page tables\n");
     uint64_t task_va = (uint64_t)child;

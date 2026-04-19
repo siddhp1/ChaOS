@@ -9,6 +9,7 @@
 #include "mm/kmap.h"
 #include "mm/page.h"
 #include "mm/tlb.h"
+#include "mm/user_pgtable.h"
 
 #define DEVICE_PHYS_BASE 0x00000000UL
 #define KERNEL_PHYS_BASE 0x40000000UL
@@ -20,15 +21,8 @@
 
 #define PTE_IS_VALID(pte) ((pte) & PTE_VALID)
 
-// TODO: Consolidate
-#define PTE_ADDR_MASK 0x0000FFFFFFFFF000ULL
-#define PTE_ADDR(pte) ((pte) & PTE_ADDR_MASK)
-
 #define PTE_L2_OAB_MASK 0x0000FFFFFFE00000ULL
-#define PTE_L3_OAB_MASK 0x0000FFFFFFFFF000ULL
-
 #define PTE_L2_OAB(pte) ((pte) & PTE_L2_OAB_MASK)
-#define PTE_L3_OAB(pte) ((pte) & PTE_L3_OAB_MASK)
 
 #define L2_BLOCK_SIZE (1UL << 21)  // 2 MiB
 
@@ -179,8 +173,7 @@ void unmap_page_l3(uint64_t* l0_table, uint64_t va) {
   tlb_flush_addr(va);
 }
 
-// TODO: Switch to uintptr_t
-static int copy_page_contents(uint64_t dest_phys, uint64_t src_phys) {
+static int copy_page_contents(uintptr_t dest_phys, uintptr_t src_phys) {
   void* dest = kmap(phys_to_page(dest_phys));
   void* src = kmap(phys_to_page(src_phys));
 
@@ -188,64 +181,54 @@ static int copy_page_contents(uint64_t dest_phys, uint64_t src_phys) {
     return -1;
   }
 
-  // Should check if dest == phys
+  if (dest == src) {
+    return 0;
+  }
 
   memcpy(dest, src, PAGE_SIZE);
+
   return 0;
 }
 
-// TODO: Make iterative
 static uint64_t* copy_page_table_level(uint64_t* src_table, int level);
 
 static int copy_pte(uint64_t* dest_table, uint64_t* src_table, int index,
                     int level) {
   uint64_t src_pte = src_table[index];
 
-  if (!PTE_IS_VALID(src_pte)) {
-    dest_table[index] = 0;
-    return 0;
-  }
-
-  // TODO: Think about these conditions
   if (level == 3 || !PTE_IS_TABLE(src_pte)) {
-    // This is a page mapping, need to allocate new page and copy contents
     struct page* new_page = alloc_page();
     if (!new_page) {
-      // printk("copy_pte: Failed to allocate page\n");
       return -1;
     }
 
-    // TODO: Switch to uintptr_t
-    uint64_t new_phys = page_to_phys(new_page);
-    uint64_t src_phys = PTE_ADDR(src_pte);
+    uintptr_t new_phys = page_to_phys(new_page);
+    uintptr_t src_phys = PTE_L3_OAB(src_pte);
 
     if (copy_page_contents(new_phys, src_phys) != 0) {
       free_page(new_page);
       return -1;
     }
 
-    // TODO: Switch to new masks
-    uint64_t new_pte = (src_pte & ~PTE_ADDR_MASK) | (new_phys & PTE_ADDR_MASK);
+    uint64_t new_pte =
+        (src_pte & ~PTE_L3_OAB_MASK) | (new_phys & PTE_L3_OAB_MASK);
     dest_table[index] = new_pte;
 
     return 0;
   }
 
-  uint64_t src_table_phys = PTE_ADDR(src_pte);
+  uint64_t src_table_phys = PTE_L3_OAB(src_pte);
   uint64_t* src_next_table = (uint64_t*)kmap(phys_to_page(src_table_phys));
 
-  // TODO: Use uintptr_t?
   uint64_t* new_next_table = copy_page_table_level(src_next_table, level + 1);
   if (!new_next_table) {
     return -1;
   }
 
-  // TODO: Use the other kmap function
-  uint64_t new_table_phys = ((uint64_t)new_next_table) - KERNEL_VIRT_BASE;
+  uint64_t new_table_phys = kernel_to_phys((uintptr_t)new_next_table);
 
-  // TODO: Switch to new mask
   uint64_t new_pte =
-      (new_table_phys & PTE_ADDR_MASK) | PTE_TYPE_TABLE | PTE_VALID;
+      (new_table_phys & PTE_NLTA_MASK) | PTE_TYPE_TABLE | PTE_VALID;
   dest_table[index] = new_pte;
 
   return 0;
@@ -258,7 +241,6 @@ static uint64_t* copy_page_table_level(uint64_t* src_table, int level) {
 
   struct page* table_page = alloc_page();
   if (!table_page) {
-    // printk("copy_page_table_level: Failed to allocate table page\n");
     return NULL;
   }
 
@@ -268,8 +250,7 @@ static uint64_t* copy_page_table_level(uint64_t* src_table, int level) {
   for (int i = 0; i < NUM_TABLE_ENTRIES; i++) {
     if (PTE_IS_VALID(src_table[i])) {
       if (copy_pte(dest_table, src_table, i, level) != 0) {
-        // TODO: Cleanup already copied entries
-        free_page(table_page);
+        free_page_table(page_to_phys(table_page), level);
         return NULL;
       }
     }
@@ -278,19 +259,10 @@ static uint64_t* copy_page_table_level(uint64_t* src_table, int level) {
   return dest_table;
 }
 
-uint64_t* copy_user_pgd(uint64_t* src_pgd) {
+uintptr_t copy_user_pgd(uint64_t* src_pgd) {
   if (!src_pgd) {
-    return NULL;
+    return 0;
   }
 
-  printk("Copying user page tables from %lx\n", (uint64_t)src_pgd);
-  uint64_t* new_pgd = copy_page_table_level(src_pgd, 0);
-
-  if (new_pgd) {
-    printk("Successfully copied user page tables to %lx\n", (uint64_t)new_pgd);
-  } else {
-    printk("Failed to copy user page tables\n");
-  }
-
-  return new_pgd;
+  return (uintptr_t)copy_page_table_level(src_pgd, 0);
 }

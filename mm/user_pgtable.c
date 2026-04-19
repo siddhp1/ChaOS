@@ -7,7 +7,7 @@
 #include "mm/page.h"
 #include "mm/pgtable.h"
 
-static void free_page_table(uintptr_t table_phys, uint8_t level) {
+void free_page_table(uintptr_t table_phys, uint8_t level) {
   if (!table_phys || level > 3) {
     return;
   }
