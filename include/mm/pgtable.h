@@ -15,6 +15,8 @@
 #define PTE_PXN (1ULL << 53)
 #define PTE_UXN (1ULL << 54)
 
+#define PTE_IS_VALID(pte) ((pte) & PTE_VALID)
+
 #define PTE_TYPE_MASK 0x3
 #define PTE_TYPE_TABLE 0x3
 #define PTE_IS_TABLE(pte) (((pte) & PTE_TYPE_MASK) == PTE_TYPE_TABLE)
@@ -33,7 +35,5 @@ uintptr_t setup_higher_half_tables(void);
 uintptr_t alloc_page_table(void);
 
 int map_page_l3(uint64_t* l0_table, uint64_t va, uint64_t phys, uint64_t attrs);
-
-uintptr_t copy_user_pgd(uint64_t* src_pgd);
 
 #endif
