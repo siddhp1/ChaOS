@@ -4,7 +4,6 @@
 #include "kernel/irq_frame.h"
 #include "kernel/pid.h"
 #include "kernel/printk.h"
-#include "kernel/process.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/string.h"
 #include "kernel/task.h"

@@ -49,4 +49,8 @@ void create_irq_frame(struct task* task, uintptr_t stack_top,
                       uintptr_t entry_fn, uintptr_t user_stack_top);
 void destroy_task(struct task* task);
 
+void add_child(struct task* parent, struct task* child);
+void remove_child(struct task* parent, struct task* child);
+struct task* find_child_by_pid(struct task* parent, int32_t pid);
+
 #endif

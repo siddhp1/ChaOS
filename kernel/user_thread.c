@@ -6,7 +6,6 @@
 #include "kernel/kthread.h"
 #include "kernel/panic.h"
 #include "kernel/pid.h"
-#include "kernel/process.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
