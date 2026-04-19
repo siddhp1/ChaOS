@@ -22,7 +22,6 @@ void remove_child(struct task* parent, struct task* child) {
 
   irq_disable();
 
-  // TODO: Make helper
   if (parent->first_child == child) {
     parent->first_child = child->sibling_next;
   } else {

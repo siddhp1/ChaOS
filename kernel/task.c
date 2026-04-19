@@ -4,6 +4,7 @@
 
 #include "kernel/irq_frame.h"
 #include "kernel/printk.h"
+#include "kernel/process.h"
 #include "kernel/string.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
@@ -57,25 +58,10 @@ void destroy_task(struct task* task) {
   printk("Destroying task PID=%d\n", task->pid);
 
   if (task->parent) {
-    printk("Removing from parent's child list\n");
-
-    if (task->parent->first_child == task) {
-      task->parent->first_child = task->sibling_next;
-    } else {
-      // Find task in the sibling list
-      struct task* sibling = task->parent->first_child;
-      while (sibling && sibling->sibling_next != task) {
-        sibling = sibling->sibling_next;
-      }
-      if (sibling) {
-        sibling->sibling_next = task->sibling_next;
-      }
-    }
+    remove_child(task->parent, task);
   }
 
-  // TODO: Reparent to init
   if (task->first_child) {
-    printk("Orphaning children\n");
     struct task* child = task->first_child;
     while (child) {
       child->parent = NULL;
@@ -84,24 +70,19 @@ void destroy_task(struct task* task) {
   }
 
   if (task->mode == TASK_MODE_USER && task->ttbr0) {
-    printk("Freeing user page tables\n");
     free_user_pgd(task->ttbr0);
     task->ttbr0 = 0;
   }
 
   if (task->stack) {
-    printk("Freeing kernel stack\n");
-    // TODO: Make this a helper (in kmap.c)
     uint64_t stack_va = task->stack;
-    uint64_t stack_phys = stack_va - KERNEL_VIRT_BASE;
-    struct page* stack_page = phys_to_page(stack_phys);
+    struct page* stack_page = phys_to_page(kernel_to_phys(stack_va));
     if (stack_page) {
       free_page(stack_page);
     }
     task->stack = 0;
   }
 
-  printk("Freeing task structure\n");
   uint64_t task_va = (uint64_t)task;
   uint64_t task_phys = task_va - KERNEL_VIRT_BASE;
   struct page* task_page = phys_to_page(task_phys);
