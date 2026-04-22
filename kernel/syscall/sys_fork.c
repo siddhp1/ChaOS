@@ -1,9 +1,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "kernel/irq_frame.h"
 #include "kernel/pid.h"
 #include "kernel/printk.h"
-#include "kernel/process.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
@@ -12,17 +12,6 @@
 #include "mm/pgtable.h"
 #include "mm/user_pgtable.h"
 #include "syscall_handlers.h"
-
-// TODO: Sync with vectors
-#define IRQ_FRAME_SIZE 288
-
-struct irq_frame {
-  uint64_t regs[31];
-  uint64_t elr_el1;
-  uint64_t spsr_el1;
-  uint64_t sp_el0;
-  uint64_t padding;
-};
 
 extern void fork_child_return(void);
 
@@ -60,7 +49,7 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   uint64_t* parent_pgd_va = (uint64_t*)kmap(parent_pgd_page);
   printk("Parent PGD (virt): %lx\n", (uint64_t)parent_pgd_va);
 
-  uint64_t* child_pgd_va = copy_user_pgd(parent_pgd_va);
+  uintptr_t child_pgd_va = copy_user_pgd(parent_pgd_va);
   if (!child_pgd_va) {
     printk("sys_fork: Failed to copy page tables\n");
     uint64_t task_va = (uint64_t)child;
@@ -76,7 +65,6 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
 
   child->ttbr0 = child_pgd_phys;
   child->mode = TASK_MODE_USER;
-  child->sp_el0 = parent->sp_el0;
 
   printk("sys_fork: Allocating kernel stack\n");
   void* child_kstack = alloc_stack();
@@ -105,31 +93,14 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   memcpy(child_frame, parent_frame, IRQ_FRAME_SIZE);
 
   // Child returns 0 from fork
-  child_frame->regs[0] = 0;
+  child_frame->x[0] = 0;
 
   printk("Child frame at: %lx\n", child_frame_addr);
-  printk("Child x0 (return value): %lx\n", child_frame->regs[0]);
-
-  child->context.sp = child_frame_addr;
-  child->context.lr = (uint64_t)fork_child_return;
-
-  // TODO: Switch to memcpy
-  child->context.x19 = parent->context.x19;
-  child->context.x20 = parent->context.x20;
-  child->context.x21 = parent->context.x21;
-  child->context.x22 = parent->context.x22;
-  child->context.x23 = parent->context.x23;
-  child->context.x24 = parent->context.x24;
-  child->context.x25 = parent->context.x25;
-  child->context.x26 = parent->context.x26;
-  child->context.x27 = parent->context.x27;
-  child->context.x28 = parent->context.x28;
-  child->context.fp = parent->context.fp;
+  printk("Child x0 (return value): %lx\n", child_frame->x[0]);
 
   child->irq_sp = child_frame_addr;
 
   child->pid = pid_alloc();
-  child->state = TASK_READY;
   child->time_slice = DEFAULT_TIME_SLICE;
   child->exit_status = 0;
 

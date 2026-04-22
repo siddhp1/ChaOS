@@ -47,7 +47,6 @@ void irq_init(void) {
 
   gic_init();
   timer_init();
-  irq_enable();
 }
 
 void register_irq(int32_t irq, irq_handler_t handler) {

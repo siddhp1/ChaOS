@@ -11,9 +11,8 @@ LDFLAGS = -T kernel_linker.ld
 
 SRC = \
 	arch/arm64/boot/kernel_boot.S \
-	arch/arm64/kernel/context_switch.S \
 	arch/arm64/kernel/cpu.c \
-	arch/arm64/kernel/enter_usermode.S \
+	arch/arm64/kernel/enter_user_mode.S \
 	arch/arm64/kernel/exception.c \
 	arch/arm64/kernel/fork_child_return.S \
 	arch/arm64/kernel/gic.c \
@@ -30,7 +29,6 @@ SRC = \
 	kernel/panic.c \
 	kernel/pid.c \
 	kernel/printk.c \
-	kernel/process.c \
 	kernel/scheduler/reaper.c \
 	kernel/scheduler/scheduler.c \
 	kernel/scheduler/sleep.c \

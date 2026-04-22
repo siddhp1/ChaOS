@@ -9,17 +9,23 @@
 struct task* sleep_queue = NULL;
 
 void enqueue_sleep_task(struct task* task) {
+  if (!task) {
+    return;
+  }
+
   task->next = NULL;
 
   if (!sleep_queue) {
     sleep_queue = task;
-  } else {
-    struct task* last_task = sleep_queue;
-    while (last_task->next) {
-      last_task = last_task->next;
-    }
-    last_task->next = task;
+    return;
   }
+
+  struct task* last_task = sleep_queue;
+  while (last_task->next) {
+    last_task = last_task->next;
+  }
+  last_task->next = task;
+  task->next = NULL;
 }
 
 void dequeue_sleep_task(struct task* task) {
@@ -57,8 +63,7 @@ void task_sleep(uint64_t ticks, struct task* task) {
   enqueue_sleep_task(task);
 
   irq_enable();
-
-  schedule();
+  yield();
 }
 
 void check_sleeping_tasks(void) {
@@ -67,7 +72,6 @@ void check_sleeping_tasks(void) {
     struct task* next_task = task->next;
     if (task->state == TASK_SLEEPING && task->wakeup_tick <= system_tick) {
       dequeue_sleep_task(task);
-      task->state = TASK_READY;
       enqueue_task(task);
     }
     task = next_task;

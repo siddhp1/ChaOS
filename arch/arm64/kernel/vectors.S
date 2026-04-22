@@ -1,27 +1,8 @@
+#include "kernel/irq_frame.h"
+
 .section .text
 .global vectors
 .align 11
-
-// IRQ stack frame layout (18 x 16-byte slots)
-.equ IRQ_FRAME_SIZE,   (16 * 18)
-.equ IRQ_OFF_X0_X1,    (16 * 0)
-.equ IRQ_OFF_X2_X3,    (16 * 1)
-.equ IRQ_OFF_X4_X5,    (16 * 2)
-.equ IRQ_OFF_X6_X7,    (16 * 3)
-.equ IRQ_OFF_X8_X9,    (16 * 4)
-.equ IRQ_OFF_X10_X11,  (16 * 5)
-.equ IRQ_OFF_X12_X13,  (16 * 6)
-.equ IRQ_OFF_X14_X15,  (16 * 7)
-.equ IRQ_OFF_X16_X17,  (16 * 8)
-.equ IRQ_OFF_X18_X19,  (16 * 9)
-.equ IRQ_OFF_X20_X21,  (16 * 10)
-.equ IRQ_OFF_X22_X23,  (16 * 11)
-.equ IRQ_OFF_X24_X25,  (16 * 12)
-.equ IRQ_OFF_X26_X27,  (16 * 13)
-.equ IRQ_OFF_X28_X29,  (16 * 14)
-.equ IRQ_OFF_X30,      (16 * 15)
-.equ IRQ_OFF_ELR_SPSR, (16 * 16)
-.equ IRQ_OFF_USER_SP,  (16 * 17)
 
 vectors:
     // EL1t
@@ -44,7 +25,7 @@ vectors:
     b serr_el1h
     .space 0x80-4
 
-    // El0
+    // EL0
     b sync_el0
     .space 0x80-4
     b irq_el0
@@ -115,11 +96,17 @@ irq_el1h:
     mrs x1, spsr_el1
     stp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
 
+    mrs x0, SP_EL0
+    str x0, [sp, #IRQ_OFF_USER_SP]
+
     bl irq_handler
 
     mov x0, sp
-    bl scheduler_irq_exit
+    bl schedule
     mov sp, x0
+
+    ldr x0, [sp, #IRQ_OFF_USER_SP]
+    msr SP_EL0, x0
 
     ldp x0, x1, [sp, #IRQ_OFF_ELR_SPSR]
     msr elr_el1, x0
@@ -196,9 +183,6 @@ sync_el0:
     b .
 
 handle_svc:
-    mov x0, sp
-    bl save_user_sp_el0
-
     mov x0, sp
     bl handle_el0_sync
 

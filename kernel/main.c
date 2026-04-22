@@ -4,6 +4,7 @@
 #include "kernel/initramfs.h"
 #include "kernel/irq.h"
 #include "kernel/kthread.h"
+#include "kernel/panic.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/scheduler/sleep.h"
@@ -20,10 +21,6 @@
 
 #define DELAY_CYCLES 10000000
 #define SLEEP_TICKS 100
-
-extern void context_switch(struct cpu_context* a, struct cpu_context* b);
-
-static struct cpu_context boot_context;
 
 void thread_a(void* arg) {
   while (1) {
@@ -50,16 +47,16 @@ void thread_sleep_test(void* arg) {
 void thread_wait_test(void* arg) {
   while (1) {
     printk("Waiting for event\n");
-    wait_event(current_task);
+    task_wait(current_task);
     printk("Got event!\n");
   }
 }
 
-void thread_waker(void* arg) {
+void thread_unwaiter(void* arg) {
   while (1) {
     for (volatile int i = 0; i < DELAY_CYCLES * 5; i++);
-    printk("Waking up wait queue\n");
-    wake_up();
+    printk("Unwaiting wait queue\n");
+    unwait_all();
   }
 }
 
@@ -99,20 +96,19 @@ void kernel_entry(void) {
   struct task* t2 = kthread_create(thread_b, NULL);
   struct task* t3 = kthread_create(thread_sleep_test, NULL);
   struct task* t4 = kthread_create(thread_wait_test, NULL);
-  struct task* t5 = kthread_create(thread_waker, NULL);
+  struct task* t5 = kthread_create(thread_unwaiter, NULL);
 
   initramfs_init();
   printk("Initramfs initialized\n");
 
   struct task* init_task = load_init();
   if (!init_task) {
-    printk("Cannot launch init\n");
-    while (1) asm volatile("wfi");
+    printk("Failed to load init\n");
   }
 
-  // TODO: Organize
-  set_ttbr0(current_task->ttbr0);
-  context_switch(&boot_context, &current_task->context);
-
-  while (1) asm volatile("wfi");  // Unreachable
+  irq_enable();
+  yield();
+  while (1) {
+    asm volatile("WFI");
+  }
 }

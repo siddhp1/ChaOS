@@ -15,12 +15,17 @@
 #define PTE_PXN (1ULL << 53)
 #define PTE_UXN (1ULL << 54)
 
+#define PTE_IS_VALID(pte) ((pte) & PTE_VALID)
+
 #define PTE_TYPE_MASK 0x3
 #define PTE_TYPE_TABLE 0x3
 #define PTE_IS_TABLE(pte) (((pte) & PTE_TYPE_MASK) == PTE_TYPE_TABLE)
 
 #define PTE_NLTA_MASK 0x0000FFFFFFFFF000ULL
 #define PTE_NLTA(pte) ((pte) & PTE_NLTA_MASK)
+
+#define PTE_L3_OAB_MASK 0x0000FFFFFFFFF000ULL
+#define PTE_L3_OAB(pte) ((pte) & PTE_L3_OAB_MASK)
 
 uint64_t* get_kernel_l0_table(void);
 
@@ -29,12 +34,6 @@ uintptr_t setup_higher_half_tables(void);
 
 uintptr_t alloc_page_table(void);
 
-// TODO: Place in global or internal header
 int map_page_l3(uint64_t* l0_table, uint64_t va, uint64_t phys, uint64_t attrs);
-
-int map_user_page(uint64_t* l0_table_phys, uint64_t va, uint64_t phys,
-                  uint64_t attrs);
-
-uint64_t* copy_user_pgd(uint64_t* src_pgd);
 
 #endif
