@@ -13,8 +13,6 @@
 #include "mm/user_pgtable.h"
 #include "syscall_handlers.h"
 
-extern void fork_child_return(void);
-
 long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   (void)a0;
   (void)a1;

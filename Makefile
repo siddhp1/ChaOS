@@ -14,7 +14,6 @@ SRC = \
 	arch/arm64/kernel/cpu.c \
 	arch/arm64/kernel/enter_user_mode.S \
 	arch/arm64/kernel/exception.c \
-	arch/arm64/kernel/fork_child_return.S \
 	arch/arm64/kernel/gic.c \
 	arch/arm64/kernel/irq.c \
 	arch/arm64/kernel/timer.c \
