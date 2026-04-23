@@ -13,7 +13,6 @@
 #include "syscall_handlers.h"
 
 #define EXEC_PATH_MAX 128
-#define USER_STACK_TOP 0x0000000080000000ULL  // 2 GiB
 
 static long copy_user_cstr(char* dst, const char* user_src, size_t max_len) {
   if (!dst || !user_src || max_len == 0) return -1;
@@ -29,10 +28,9 @@ static long copy_user_cstr(char* dst, const char* user_src, size_t max_len) {
   return -1;  // No terminator in bound
 }
 
-long sys_execve(long pathname, long argv, long envp, long a3, long a4,
-                long a5) {
-  (void)argv;
-  (void)envp;
+long sys_execve(long pathname, long a1, long a2, long a3, long a4, long a5) {
+  (void)a1;
+  (void)a2;
   (void)a3;
   (void)a4;
   (void)a5;
@@ -60,9 +58,6 @@ long sys_execve(long pathname, long argv, long envp, long a3, long a4,
 
   frame->elr_el1 = USER_VIRT_ENTRY;
   frame->sp_el0 = USER_STACK_TOP;
-  frame->x[0] = 0;
-
-  set_ttbr0(current_task->ttbr0);
 
   return 0;
 }
