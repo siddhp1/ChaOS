@@ -17,6 +17,6 @@ typedef long (*syscall_fn_t)(long, long, long, long, long, long);
 long syscall_dispatch(long nr, long a0, long a1, long a2, long a3, long a4,
                       long a5);
 
-void handle_el0_sync(void* frame);
+void handle_el0_sync(uint64_t irq_sp);
 
 #endif
