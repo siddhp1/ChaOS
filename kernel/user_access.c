@@ -19,6 +19,8 @@ long copy_from_user(void* dst, const void* src, uint64_t len) {
     return -1;
   }
 
+  // TODO: Add check for unmapped memory
+
   memcpy(dst, src, len);
 
   return 0;

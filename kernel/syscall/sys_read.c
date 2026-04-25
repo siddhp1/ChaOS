@@ -1,4 +1,5 @@
 #include "kernel/uart.h"
+#include "kernel/user_access.h"
 
 long sys_read(long fd, long buffer, long length, long a3, long a4, long a5) {
   (void)a3;
@@ -6,6 +7,7 @@ long sys_read(long fd, long buffer, long length, long a3, long a4, long a5) {
   (void)a5;
 
   if (fd != 0) return -1;
+  if (!user_range_ok(buffer, length)) return -1;
 
   char* buf = (char*)buffer;
   long i = 0;
