@@ -7,20 +7,21 @@ ifeq ($(DEBUG),true)
 CFLAGS += -g -O0 -fno-omit-frame-pointer
 endif
 
-LDFLAGS = -T linker.ld
+LDFLAGS = -T user_linker.ld
 
 LIBC_SRC = \
-	libc/syscall.c \
 	libc/execve.c \
 	libc/exit.c \
 	libc/fork.c \
 	libc/read.c \
+	libc/syscall.c \
+	libc/string.c \
 	libc/write.c
 
 SRC = \
 	hello.c \
 	init.c \
-	userspace_entry.S \
+	user_boot.S \
 	$(LIBC_SRC)
 
 OBJ = $(SRC:.c=.o)
@@ -30,7 +31,7 @@ DEPS = $(OBJ:.o=.d)
 -include $(DEPS)
 
 LIBC_OBJ  = $(patsubst %.c,%.o,$(LIBC_SRC))
-ENTRY_OBJ = userspace_entry.o
+ENTRY_OBJ = user_boot.o
 
 PROGRAMS = init hello
 BINS     = $(patsubst %,%.bin,$(PROGRAMS))
