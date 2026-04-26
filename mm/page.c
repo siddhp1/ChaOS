@@ -4,7 +4,7 @@
 
 #include "kernel/printk.h"
 #include "mm/kmap.h"
-#include "page_internal.h"
+#include "mm/page.h"
 
 #define PHYS_START 0x40000000UL
 #define PHYS_END 0x60000000UL

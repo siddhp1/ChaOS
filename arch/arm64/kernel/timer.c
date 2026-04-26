@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#include "irq_internal.h"
+#include "kernel/irq.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/scheduler/sleep.h"

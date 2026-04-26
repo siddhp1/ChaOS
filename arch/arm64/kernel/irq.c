@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 #include "gic.h"
-#include "irq_internal.h"
 #include "timer.h"
 
 #define MAX_IRQ 128

@@ -1,5 +1,5 @@
 #include "mm/memory.h"
 
-#include "page_internal.h"
+#include "mm/page.h"
 
 void memory_init(void) { page_init(); }

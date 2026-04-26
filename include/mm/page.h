@@ -12,6 +12,13 @@ struct page {
   uint32_t refcount;
 };
 
+struct page_internal {
+  struct page pub;
+  struct page_internal* next;
+};
+
+void page_init(void);
+
 struct page* alloc_page(void);
 void free_page(struct page*);
 
