@@ -16,7 +16,6 @@
 #include "mm/user_pgtable.h"
 
 #define USER_STACK_SIZE 4096
-#define USER_STACK_TOP USER_VIRT_END
 
 extern void enter_user_mode(uint64_t pc, uint64_t sp);
 

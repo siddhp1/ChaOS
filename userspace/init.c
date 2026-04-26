@@ -1,13 +1,5 @@
 #include "libc/libc.h"
-
-static int streq(const char* a, const char* b) {
-  while (*a && *b) {
-    if (*a != *b) return 0;
-    a++;
-    b++;
-  }
-  return *a == *b;
-}
+#include "libc/string.h"
 
 int main(void) {
   write(1,
@@ -44,7 +36,7 @@ int main(void) {
     }
     if (n == 0) continue;
 
-    if (streq(buf, "hello")) {
+    if (strcmp(buf, "hello") == 0) {
       int pid = fork();
       if (pid < 0) {
         write(1, "fork failed\n", 12);
@@ -53,7 +45,7 @@ int main(void) {
         write(1, "exec failed\n", 12);  // execve should not return
       }
       // Parent continues
-    } else if (streq(buf, "exit")) {
+    } else if (strcmp(buf, "exit") == 0) {
       write(1, "Goodbye\n", 8);
       exit(0);
     } else {

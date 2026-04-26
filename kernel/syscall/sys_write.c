@@ -5,17 +5,10 @@
 long sys_write(long file_descriptor, long buffer, long length, long a3, long a4,
                long a5) {
   // Only stdout supported
-  if (file_descriptor != 1) {
-    return -1;
-  }
+  if (file_descriptor != 1) return -1;
 
-  if (length < 0) {
-    return -1;
-  }
-
-  if (length == 0) {
-    return 0;
-  }
+  if (length < 0) return -1;
+  if (length == 0) return 0;
 
   const char* user_buffer = (const char*)buffer;
   long written = 0;
@@ -28,7 +21,6 @@ long sys_write(long file_descriptor, long buffer, long length, long a3, long a4,
     long chunk =
         (remaining > (long)sizeof(kbuf)) ? (long)sizeof(kbuf) : remaining;
 
-    // TODO: Fix side-effect pattern here
     if (copy_from_user(kbuf, user_buffer + written, (uint64_t)chunk) < 0) {
       return -1;
     }

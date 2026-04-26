@@ -9,6 +9,8 @@
 #define USER_VIRT_END 0x80000000ULL  // 2 GiB
 #define USER_VIRT_ENTRY 0x00400000ULL
 
+#define USER_STACK_TOP USER_VIRT_END
+
 struct task* create_user_process(void* code, size_t code_size);
 int load_user_image(struct task* t, const void* code, size_t code_size);
 

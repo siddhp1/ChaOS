@@ -193,6 +193,7 @@ handle_svc:
     msr SPSR_EL1, x1
     msr ELR_EL1, x0
 
+    ldr x30,      [sp, #IRQ_OFF_X30]
     ldp x28, x29, [sp, #IRQ_OFF_X28_X29]
     ldp x26, x27, [sp, #IRQ_OFF_X26_X27]
     ldp x24, x25, [sp, #IRQ_OFF_X24_X25]
@@ -207,7 +208,6 @@ handle_svc:
     ldp x6, x7,   [sp, #IRQ_OFF_X6_X7]
     ldp x4, x5,   [sp, #IRQ_OFF_X4_X5]
     ldp x2, x3,   [sp, #IRQ_OFF_X2_X3]
-    ldr x30,      [sp, #IRQ_OFF_X30]
     ldp x0, x1,   [sp, #IRQ_OFF_X0_X1]
 
     add sp, sp, #IRQ_FRAME_SIZE
