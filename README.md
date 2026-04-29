@@ -8,7 +8,7 @@ Freestanding AArch64 (ARMv8) OS kernel for Raspberry Pi.
 
 Includes UART console output, a preemptive scheduler, memory management, a userspace with syscalls, and initramfs loader.
 
-> More information in the Wiki (coming soon!)
+> More information in the [Wiki!](https://github.com/siddhp1/ChaOS/wiki)
 
 ## Setup
 
@@ -60,5 +60,5 @@ Add `-S -s` when running debug builds
 - Develop filesystem
 - I/O and device drivers
 - Graphics drivers
-- Improved scheduler
+- Symmetric multiprocessing
 - Power management
