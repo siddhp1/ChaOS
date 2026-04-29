@@ -40,7 +40,7 @@ void timer_interrupt(void* unused) {
   // Re-arm timer for the next tick
   asm volatile("msr CNTV_TVAL_EL0, %0"
                :
-               : "r"((uint64_t)timer_interval_ticks)
+               : "r"(timer_interval_ticks)
                : "memory");
 
   printk("TICK\n");
