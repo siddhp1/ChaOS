@@ -12,9 +12,9 @@
 long syscall(long nr, long a0, long a1, long a2, long a3, long a4, long a5);
 
 long write(int fd, const void* buf, long len);
-int execve(const char* path, char* const argv[]);
+long execve(const char* path, char* const argv[]);
 void exit(int status);
-int fork(void);
+long fork(void);
 long read(int fd, void* buf, long len);
 long wait(int* status);
 long waitpid(int pid, int* status);
