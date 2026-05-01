@@ -15,7 +15,8 @@ enum task_state {
   TASK_RUNNING,
   TASK_BLOCKED,
   TASK_ZOMBIE,
-  TASK_SLEEPING
+  TASK_SLEEPING,
+  TASK_WAIT_CHILD
 };
 
 struct task {

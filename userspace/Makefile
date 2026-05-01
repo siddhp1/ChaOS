@@ -16,6 +16,8 @@ LIBC_SRC = \
 	libc/read.c \
 	libc/syscall.c \
 	libc/string.c \
+	libc/wait.c \
+	libc/waitpid.c \
 	libc/write.c
 
 SRC = \
