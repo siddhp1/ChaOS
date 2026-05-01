@@ -40,10 +40,10 @@ void reap_zombies(void) {
   while (zombie) {
     struct task* next = zombie->next;
 
-    printk("Reaping zombie PID=%u\n", zombie->pid);
-
-    destroy_task(zombie);
-
+    if (zombie->parent == NULL && zombie->mode == TASK_MODE_KERNEL) {
+      printk("Reaping zombie PID=%u\n", zombie->pid);
+      destroy_task(zombie);
+    }
     zombie = next;
   }
 }
