@@ -5,16 +5,36 @@
 #include "mm/pgtable.h"
 #include "mm/tlb.h"
 
-#define MAIR_ATTR_DEVICE 0x00
-#define MAIR_ATTR_NORMAL 0xFF
-#define MAIR_VALUE ((MAIR_ATTR_DEVICE << 0) | (MAIR_ATTR_NORMAL << 8))
+#define MAIR_ATTR_DEVICE (0x00 << 0)
+#define MAIR_ATTR_NORMAL (0xFF << 8)
+#define MAIR_VALUE (MAIR_ATTR_DEVICE | MAIR_ATTR_NORMAL)
 
-#define TCR_T0SZ 16   // 48-bit virtual addresses for TTBR0
-#define TCR_T1SZ 16   // 48-bit virtual addresses for TTBR1
-#define TCR_TG0 0b00  // 4 KiB granule size
-#define TCR_TG1 0b10  // 4 KiB granule size
-#define TCR_VALUE \
-  ((TCR_T0SZ << 0) | (TCR_T1SZ << 16) | (TCR_TG0 << 14) | (TCR_TG1 << 30))
+// 48-bit virtual addresses
+#define TCR_T0SZ (16 << 0)
+#define TCR_T1SZ (16 << 16)
+
+// 4 KiB granule size
+#define TCR_TG0 (0b00 << 14)
+#define TCR_TG1 (0b10 << 30)
+
+#define TCR_RGN_WBWA 0b01  // Write-back, write-allocate
+#define TCR_SH_INNER 0b11  // Inner shareable
+
+// Inner cacheability
+#define TCR_IRGN0 (TCR_RGN_WBWA << 8)
+#define TCR_IRGN1 (TCR_RGN_WBWA << 24)
+
+// Outer cacheability
+#define TCR_ORGN0 (TCR_RGN_WBWA << 10)
+#define TCR_ORGN1 (TCR_RGN_WBWA << 26)
+
+// Shareability
+#define TCR_SH0 (TCR_SH_INNER << 12)
+#define TCR_SH1 (TCR_SH_INNER << 28)
+
+#define TCR_VALUE                                                             \
+  TCR_T0SZ | TCR_T1SZ | TCR_TG0 | TCR_TG1 | TCR_IRGN0 | TCR_ORGN0 | TCR_SH0 | \
+      TCR_IRGN1 | TCR_ORGN1 | TCR_SH1
 
 void enable_mmu(uintptr_t ttbr0, uintptr_t ttbr1) {
   asm volatile("msr MAIR_EL1, %0" ::"r"(MAIR_VALUE));
