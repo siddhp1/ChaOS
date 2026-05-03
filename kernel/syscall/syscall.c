@@ -6,7 +6,6 @@
 #include "kernel/irq_frame.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler/scheduler.h"
-#include "kernel/uart.h"
 #include "syscall_handlers.h"
 
 static syscall_fn_t syscall_table[SYS_MAX] = {

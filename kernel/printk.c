@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "kernel/uart.h"
+#include "drivers/uart.h"
 
 void printk(const char* fmt, ...) {
   va_list args;
