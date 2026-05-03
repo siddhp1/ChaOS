@@ -43,7 +43,6 @@ void scheduler_tick(void) {
   current_task->time_slice--;
 
   if (current_task->time_slice <= 0) {
-    current_task->time_slice = DEFAULT_TIME_SLICE;
     need_schedule = true;
   }
 
@@ -115,14 +114,21 @@ struct task* get_next_task(void) {
   }
 
   next->state = TASK_RUNNING;
+  next->time_slice = DEFAULT_TIME_SLICE;
   current_task = next;
   return next;
 }
 
 void yield(void) {
+  irq_disable();
+
+  if (current_task) {
+    current_task->time_slice = 0;
+  }
   need_schedule = true;
-  // TODO: Trigger a reschedule immediately
-  asm volatile("WFI");
+  irq_send_resched();
+
+  irq_enable();
 }
 
 uint64_t schedule(uint64_t irq_sp) {
