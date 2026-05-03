@@ -101,13 +101,11 @@ void kernel_entry(void) {
   initramfs_init();
   printk("Initramfs initialized\n");
 
-  struct task* init_task = load_init();
-  if (!init_task) {
-    printk("Failed to load init\n");
-  }
+  load_init();
 
   irq_enable();
   yield();
+
   while (1) {
     asm volatile("WFI");
   }

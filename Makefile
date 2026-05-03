@@ -37,6 +37,8 @@ SRC = \
 	kernel/syscall/sys_exit.c \
 	kernel/syscall/sys_fork.c \
 	kernel/syscall/sys_read.c \
+	kernel/syscall/sys_wait.c \
+	kernel/syscall/sys_waitpid.c \
 	kernel/syscall/sys_write.c \
 	kernel/task.c \
 	kernel/user_access.c \
@@ -61,16 +63,17 @@ INITRAMFS_OBJ  = initramfs_blob.o
 
 all: kernel.elf
 
-userspace/init.bin userspace/hello.bin: userspace_build
+userspace/init.bin userspace/hello.bin userspace/sh.bin : userspace_build
 
 .PHONY: userspace_build
 userspace_build:
 	$(MAKE) -C userspace TOOLCHAIN=$(TOOLCHAIN)
 
-$(INITRAMFS_IMG): userspace/init.bin userspace/hello.bin
+$(INITRAMFS_IMG): userspace/init.bin userspace/hello.bin userspace/sh.bin
 	python3 tools/mkinitramfs.py -o $@ \
 		bin/init=userspace/init.bin \
-		bin/hello=userspace/hello.bin
+		bin/hello=userspace/hello.bin \
+		bin/sh=userspace/sh.bin
 
 # Convert initramfs binary blob into an object file that can be linked into the kernel
 $(INITRAMFS_OBJ): $(INITRAMFS_IMG)

@@ -16,11 +16,14 @@ LIBC_SRC = \
 	libc/read.c \
 	libc/syscall.c \
 	libc/string.c \
+	libc/wait.c \
+	libc/waitpid.c \
 	libc/write.c
 
 SRC = \
 	hello.c \
 	init.c \
+	sh.c \
 	user_boot.S \
 	$(LIBC_SRC)
 
@@ -33,7 +36,7 @@ DEPS = $(OBJ:.o=.d)
 LIBC_OBJ  = $(patsubst %.c,%.o,$(LIBC_SRC))
 ENTRY_OBJ = user_boot.o
 
-PROGRAMS = init hello
+PROGRAMS = init hello sh
 BINS     = $(patsubst %,%.bin,$(PROGRAMS))
 ELFS     = $(patsubst %,%.elf,$(PROGRAMS))
 

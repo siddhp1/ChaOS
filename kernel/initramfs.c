@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 
+#include "kernel/panic.h"
 #include "kernel/printk.h"
 #include "kernel/string.h"
 #include "kernel/user_thread.h"
@@ -15,6 +16,8 @@ extern char initramfs_end[];
 
 static struct initramfs_file files[MAX_FILES];
 static int file_count = 0;
+
+struct task* task_init = NULL;
 
 void initramfs_init(void) {
   char* init_ptr = initramfs_start;
@@ -55,5 +58,10 @@ struct task* load_init(void) {
   printk("initramfs: launching %s size=%lx\n", INIT_FILE_PATH,
          (uint64_t)init_file->size);
 
-  return create_user_process(init_file->data, init_file->size);
+  task_init = create_user_process(init_file->data, init_file->size);
+  if (!task_init) {
+    panic("initramfs: failed to create init process\n");
+  }
+
+  return task_init;
 }
