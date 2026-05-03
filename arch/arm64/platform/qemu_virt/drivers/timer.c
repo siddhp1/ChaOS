@@ -7,10 +7,6 @@
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/scheduler/sleep.h"
 
-#define TIMER_IRQ 27
-// TODO: Increase frequency
-#define TIMER_HZ 10
-
 static uint64_t timer_interval_ticks;
 
 void timer_init(void) {

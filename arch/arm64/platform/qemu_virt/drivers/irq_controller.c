@@ -1,4 +1,4 @@
-#include "gic.h"
+#include "irq_controller.h"
 
 #include <stdint.h>
 
@@ -22,7 +22,7 @@
 #define GICR_ISENABLER0 0x0100  // Interrupt set enable register 0 offset
 #define GICR_IPRIORITYR 0x0400  // Interrupt priority register offset
 
-void gic_init(void) {
+void irq_controller_init(void) {
   // Enable the system register interface to the GIC CPU interface for EL1
   uint64_t sre;
   asm volatile("mrs %0, ICC_SRE_EL1" : "=r"(sre));
@@ -61,12 +61,12 @@ void gic_init(void) {
   *(volatile uint32_t*)(GICR_SGI_BASE + GICR_ISENABLER0) = (1u << 27);
 }
 
-uint32_t gic_ack(void) {
+uint32_t irq_controller_ack(void) {
   uint64_t iar;
   asm volatile("mrs %0, ICC_IAR1_EL1" : "=r"(iar));
   return (uint32_t)iar;
 }
 
-void gic_eoi(uint32_t irq) {
+void irq_controller_eoi(uint32_t irq) {
   asm volatile("msr ICC_EOIR1_EL1, %0" : : "r"((uint64_t)irq) : "memory");
 }
