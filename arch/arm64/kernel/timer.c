@@ -2,12 +2,12 @@
 
 #include <stdint.h>
 
+#include "gic.h"
 #include "kernel/irq.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/scheduler/sleep.h"
 
-#define TIMER_IRQ 27
 // TODO: Increase frequency
 #define TIMER_HZ 10
 
@@ -33,7 +33,7 @@ void timer_init(void) {
   // Enable timer
   asm volatile("msr CNTV_CTL_EL0, %0" : : "r"((uint64_t)1) : "memory");
 
-  register_irq(TIMER_IRQ, timer_interrupt);
+  register_irq(IRQ_TIMER_CNTV, timer_interrupt);
 }
 
 void timer_interrupt(void* unused) {

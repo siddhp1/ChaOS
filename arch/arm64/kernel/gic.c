@@ -73,17 +73,7 @@ void gic_init(void) {
   while ((*(volatile uint32_t*)(GICR_RD_BASE + GICR_WAKER)) &
          GICR_WAKER_CHILDREN_ASLEEP);
 
-  // Put PPI 27 (CNTVIRQ) into group 1
-  uint32_t grp = *(volatile uint32_t*)(GICR_SGI_BASE + GICR_IGROUPR0);
-  grp |= (1u << 27);
-  *(volatile uint32_t*)(GICR_SGI_BASE + GICR_IGROUPR0) = grp;
-
-  // Set priority for PPI 27
-  volatile uint8_t* p = (volatile uint8_t*)(GICR_SGI_BASE + GICR_IPRIORITYR);
-  p[27] = 0x80;
-
-  // Enable PPI 27
-  *(volatile uint32_t*)(GICR_SGI_BASE + GICR_ISENABLER0) = (1u << 27);
+  gicr_config(IRQ_TIMER_CNTV, 0x80, true);
   gicr_config(IRQ_RESCHED_SGI, 0x80, true);
 }
 
