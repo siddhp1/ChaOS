@@ -1,10 +1,12 @@
+# Toolchain & configuration
 TOOLCHAIN ?= aarch64-elf
 include toolchains/$(TOOLCHAIN).mk
 
-CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Iinclude -MMD -MP -mgeneral-regs-only -Iarch/arm64/include
 DEBUG ?= true
 # Flags
 LDFLAGS = -T arch/arm64/platform/$(PLATFORM)/kernel_linker.ld
+CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -mgeneral-regs-only
+CFLAGS += -Iinclude
 ifeq ($(DEBUG),true)
 CFLAGS += -g -O0 -fno-omit-frame-pointer
 endif
@@ -54,17 +56,20 @@ SRC = \
 OBJ = $(SRC:.c=.o)
 OBJ := $(OBJ:.S=.o)
 DEPS = $(OBJ:.o=.d)
-
 -include $(DEPS)
 
 INITRAMFS_IMG  = initramfs.img
 INITRAMFS_OBJ  = initramfs_blob.o
 
+# Top-level targets
+.DEFAULT_GOAL := all
+.PHONY: all image clean userspace_build
+
 all: kernel.elf
+image: kernel8.img
 
+# Userspace & initramfs
 userspace/init.bin userspace/hello.bin: userspace_build
-
-.PHONY: userspace_build
 userspace_build:
 	$(MAKE) -C userspace TOOLCHAIN=$(TOOLCHAIN)
 
@@ -79,15 +84,21 @@ $(INITRAMFS_OBJ): $(INITRAMFS_IMG)
 		--rename-section .data=.initramfs,alloc,load,readonly,data,contents \
 		$< $@
 
+# Build rules
 kernel.elf: $(OBJ) $(INITRAMFS_OBJ)
 	$(LD) $(LDFLAGS) -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
-
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
 
+
+# Packaging
+kernel8.img: kernel.elf
+	$(OBJCOPY) -O binary $< $@
+
+# Clean
 clean:
-	rm -f $(OBJ) $(DEPS) kernel.elf $(INITRAMFS_IMG) $(INITRAMFS_OBJ)
+	rm -f $(OBJ) $(DEPS) kernel.elf $(INITRAMFS_IMG) $(INITRAMFS_OBJ) kernel8.img
 	$(MAKE) -C userspace clean
