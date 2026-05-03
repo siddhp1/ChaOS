@@ -12,6 +12,8 @@
 
 static irq_handler_t irq_table[MAX_IRQ];
 
+static void irq_resched_handler(void* unused) { (void)unused; }
+
 void irq_ack(uint32_t irq) { gic_eoi(irq); }
 
 void irq_disable(void) { asm volatile("msr daifset, #2" ::: "memory"); }
@@ -45,6 +47,7 @@ void irq_init(void) {
   memset(irq_table, 0, sizeof(irq_table));
 
   gic_init();
+  register_irq(IRQ_RESCHED_SGI, irq_resched_handler);
   timer_init();
 }
 
@@ -53,3 +56,5 @@ void register_irq(uint32_t irq, irq_handler_t handler) {
     irq_table[irq] = handler;
   }
 }
+
+void irq_send_resched(void) { gic_send_sgi(IRQ_RESCHED_SGI); }

@@ -1,5 +1,6 @@
 #include "gic.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "mm/kmap.h"
@@ -21,6 +22,30 @@
 #define GICR_IGROUPR0 0x0080    // Interrupt group register 0 offset
 #define GICR_ISENABLER0 0x0100  // Interrupt set enable register 0 offset
 #define GICR_IPRIORITYR 0x0400  // Interrupt priority register offset
+
+static void gicr_config(uint32_t int_id, uint8_t prio, bool group1) {
+  if (int_id > 31) {
+    return;
+  }
+
+  volatile uint32_t* group =
+      (volatile uint32_t*)(GICR_SGI_BASE + GICR_IGROUPR0);
+  volatile uint8_t* priority =
+      (volatile uint8_t*)(GICR_SGI_BASE + GICR_IPRIORITYR);
+  volatile uint32_t* enable =
+      (volatile uint32_t*)(GICR_SGI_BASE + GICR_ISENABLER0);
+
+  uint32_t mask = 1u << int_id;
+
+  if (group1) {
+    *group |= mask;
+  } else {
+    *group &= ~mask;
+  }
+
+  priority[int_id] = prio;
+  *enable = mask;
+}
 
 void gic_init(void) {
   // Enable the system register interface to the GIC CPU interface for EL1
@@ -48,17 +73,16 @@ void gic_init(void) {
   while ((*(volatile uint32_t*)(GICR_RD_BASE + GICR_WAKER)) &
          GICR_WAKER_CHILDREN_ASLEEP);
 
-  // Put PPI 27 (CNTVIRQ) into group 1
-  uint32_t grp = *(volatile uint32_t*)(GICR_SGI_BASE + GICR_IGROUPR0);
-  grp |= (1u << 27);
-  *(volatile uint32_t*)(GICR_SGI_BASE + GICR_IGROUPR0) = grp;
+  gicr_config(IRQ_TIMER_CNTV, 0x80, true);
+  gicr_config(IRQ_RESCHED_SGI, 0x80, true);
+}
 
-  // Set priority for PPI 27
-  volatile uint8_t* p = (volatile uint8_t*)(GICR_SGI_BASE + GICR_IPRIORITYR);
-  p[27] = 0x80;
-
-  // Enable PPI 27
-  *(volatile uint32_t*)(GICR_SGI_BASE + GICR_ISENABLER0) = (1u << 27);
+void gic_send_sgi(uint64_t sgi_id) {
+  uint8_t target = 1u;  // Target CPU 0
+  uint64_t val = (target & 0xffffu) | ((sgi_id & 0xf) << 24);
+  asm volatile("dsb sy" ::: "memory");
+  asm volatile("msr ICC_SGI1R_EL1, %0" : : "r"(val) : "memory");
+  asm volatile("isb" ::: "memory");
 }
 
 uint32_t gic_ack(void) {
