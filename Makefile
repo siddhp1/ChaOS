@@ -3,10 +3,13 @@ TOOLCHAIN ?= aarch64-elf
 include toolchains/$(TOOLCHAIN).mk
 
 DEBUG ?= true
+PLATFORM ?= qemu_virt
+
 # Flags
 LDFLAGS = -T arch/arm64/platform/$(PLATFORM)/kernel_linker.ld
 CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -mgeneral-regs-only
 CFLAGS += -Iinclude
+CFLAGS += -Iarch/arm64/platform/$(PLATFORM)/include
 ifeq ($(DEBUG),true)
 CFLAGS += -g -O0 -fno-omit-frame-pointer
 endif
@@ -24,7 +27,7 @@ SRC = \
 	arch/arm64/mm/fault.c \
 	arch/arm64/mm/mmu.c \
 	arch/arm64/mm/tlb.c \
-	drivers/uart/uart.c \
+	arch/arm64/platform/$(PLATFORM)/drivers/uart.c \
 	kernel/initramfs.c \
 	kernel/kthread.c \
 	kernel/main.c \
