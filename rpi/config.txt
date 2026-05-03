@@ -1,0 +1,4 @@
+arm_64bit=1
+enable_uart=1
+dtoverlay=disable-bt
+kernel=kernel8.img
