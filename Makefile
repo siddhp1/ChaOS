@@ -3,12 +3,13 @@ include toolchains/$(TOOLCHAIN).mk
 
 CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Iinclude -MMD -MP -mgeneral-regs-only -Iarch/arm64/include
 DEBUG ?= true
+# Flags
+LDFLAGS = -T arch/arm64/platform/$(PLATFORM)/kernel_linker.ld
 ifeq ($(DEBUG),true)
 CFLAGS += -g -O0 -fno-omit-frame-pointer
 endif
 
-LDFLAGS = -T kernel_linker.ld
-
+# Sources & derived
 SRC = \
 	arch/arm64/boot/kernel_boot.S \
 	arch/arm64/kernel/cpu.c \
