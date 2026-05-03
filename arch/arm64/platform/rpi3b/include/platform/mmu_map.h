@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define MAP_SIZE (1UL * 1024 * 1024 * 1024)  // 1 GiB
+#define MAP_SIZE 0x80000000UL
 
 static inline bool phys_is_device(uintptr_t phys) {
   if (phys >= 0x3F000000) return true;
