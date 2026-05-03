@@ -1,4 +1,4 @@
-#include "kernel/uart.h"
+#include "drivers/uart.h"
 
 #include "mm/kmap.h"
 
