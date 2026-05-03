@@ -40,7 +40,7 @@ void reap_zombies(void) {
   while (zombie) {
     struct task* next = zombie->next;
 
-    if (zombie->parent == NULL && zombie->mode == TASK_MODE_KERNEL) {
+    if (zombie->parent == NULL) {
       printk("Reaping zombie PID=%u\n", zombie->pid);
       destroy_task(zombie);
     }

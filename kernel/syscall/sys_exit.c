@@ -31,13 +31,11 @@ long sys_exit(long status, long a1, long a2, long a3, long a4, long a5) {
   current_task->first_child = NULL;
 
   if (task_init && task_init->state == TASK_WAIT_CHILD) {
-    task_init->state = TASK_READY;
     enqueue_task(task_init);
   }
 
   struct task* parent = current_task->parent;
   if (parent && parent->state == TASK_WAIT_CHILD) {
-    parent->state = TASK_READY;
     enqueue_task(parent);
   }
 
