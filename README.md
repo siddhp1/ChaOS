@@ -4,9 +4,9 @@
 
 ## About
 
-Freestanding AArch64 (ARMv8) OS kernel for Raspberry Pi.
+Freestanding AArch64 (ARMv8) OS kernel for Raspberry Pi (Cortex-A53) with PL011 UART for serial I/O.
 
-Includes UART console output, a preemptive scheduler, memory management, a userspace with syscalls, and initramfs loader.
+Includes preemptive scheduler, memory management, a userspace with syscalls, and initramfs loader.
 
 > More information in the [Wiki!](https://github.com/siddhp1/ChaOS/wiki)
 
@@ -16,28 +16,27 @@ Includes UART console output, a preemptive scheduler, memory management, a users
 
 - QEMU (AArch64): `qemu-system-aarch64`
 - A cross compiler:
-  - **Bare-metal (default):** `aarch64-elf-*`
-  - **Linux cross:** `aarch64-linux-gnu-*`
+  - Bare-metal (default): `aarch64-elf-*`
+  - Linux cross: `aarch64-linux-gnu-*`
 
 ### Build
 
-**Bare-metal (default):**
+#### Command
 
 ```sh
-make
+make TOOLCHAIN=? PLATFORM=? DEBUG=?
 ```
 
-**Linux cross toolchain:**
+#### Arguments
 
-```sh
-make TOOLCHAIN=aarch64-linux-gnu
-```
+| Variable | Default | Supported values | Meaning |
+| --- | --- | --- | --- |
+| `TOOLCHAIN` | `aarch64-elf` | `aarch64-elf`, `aarch64-linux-gnu` | Selects the cross-compiler toolchain |
+| `PLATFORM` | `qemu_virt` | `qemu_virt`, `rpi` | Builds for a specific platform |
+| `DEBUG` | `true` | `true`, `false` | Adds debug compiler flags |
 
-**Debug build:**
-
-```sh
-make DEBUG=true
-```
+For QEMU, the recommended arguments are `PLATFORM=qemu_virt` and `DEBUG=true`.  
+For Raspberry Pi, the recommended arguments are `PLATFORM=rpi` and `DEBUG=false`.
 
 ## Usage
 
@@ -54,9 +53,24 @@ qemu-system-aarch64 \
 
 Add `-S -s` when running debug builds
 
+### Raspberry Pi
+
+- Mount the Raspberry Pi boot partition (FAT) and copy the firmware files in `rpi/` and `kernel8.img`
+- Connect a 3.3V USB-to-TTL serial adapter to the Pi UART (GPIO14 TXD0, GPIO15 RXD0, and GND)
+- Use a serial console with baud rate of 115200 to view UART I/O
+
+#### Minicom
+```sh
+minicom -D /dev/ttyUSB0 -b 115200
+```
+
+#### Screen
+```sh
+screen /dev/ttyUSB0 115200
+```
+
 ## Next Steps
 
-- Port to Raspberry Pi hardware
 - Develop filesystem
 - I/O and device drivers
 - Graphics drivers
