@@ -7,7 +7,6 @@
 #include "kernel/string.h"
 #include "timer.h"
 
-#define IRQ_NONE 0xFFFFFFFFUL
 #define MAX_IRQ 128
 
 static irq_handler_t irq_table[MAX_IRQ];
