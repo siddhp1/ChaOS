@@ -4,9 +4,9 @@
 
 ## About
 
-Freestanding AArch64 (ARMv8) OS kernel for Raspberry Pi.
+Freestanding AArch64 (ARMv8) OS kernel for Raspberry Pi (Cortex-A53) with PL011 UART for serial I/O.
 
-Includes UART console output, a preemptive scheduler, memory management, a userspace with syscalls, and initramfs loader.
+Includes preemptive scheduler, memory management, a userspace with syscalls, and initramfs loader.
 
 > More information in the [Wiki!](https://github.com/siddhp1/ChaOS/wiki)
 
