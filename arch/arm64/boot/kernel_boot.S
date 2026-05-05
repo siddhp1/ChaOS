@@ -55,7 +55,7 @@ el2_start:
     ldr x0, =el1_start
     msr ELR_EL2, x0
 
-    mov x0, #0x3C5 // EL1h, set E,A,I,F
+    mov x0, #0x3C5 // EL1h, set D,A,I,F
     msr SPSR_EL2, x0
 
     eret
