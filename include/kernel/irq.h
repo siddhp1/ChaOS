@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#define IRQ_RESCHED_SGI 0
+#define IRQ_TIMER_CNTV 27
+#define IRQ_NONE 0xFFFFFFFFUL
+
 typedef void (*irq_handler_t)(void*);
 
 void irq_ack(uint32_t irq);

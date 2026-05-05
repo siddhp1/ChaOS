@@ -1,4 +1,4 @@
-#include "kernel/uart.h"
+#include "drivers/uart.h"
 #include "kernel/user_access.h"
 
 long sys_read(long fd, long buffer, long length, long a3, long a4, long a5) {

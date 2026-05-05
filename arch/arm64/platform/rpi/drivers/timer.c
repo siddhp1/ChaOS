@@ -2,14 +2,10 @@
 
 #include <stdint.h>
 
-#include "gic.h"
 #include "kernel/irq.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/scheduler/sleep.h"
-
-// TODO: Increase frequency
-#define TIMER_HZ 10
 
 static uint64_t timer_interval_ticks;
 
@@ -25,20 +21,20 @@ void timer_init(void) {
   }
 
   // Program timer to fire timer_interval_ticks from now
-  asm volatile("msr CNTV_TVAL_EL0, %0"
+  asm volatile("msr CNTP_TVAL_EL0, %0"
                :
                : "r"(timer_interval_ticks)
                : "memory");
 
   // Enable timer
-  asm volatile("msr CNTV_CTL_EL0, %0" : : "r"((uint64_t)1) : "memory");
+  asm volatile("msr CNTP_CTL_EL0, %0" : : "r"((uint64_t)1) : "memory");
 
-  register_irq(IRQ_TIMER_CNTV, timer_interrupt);
+  register_irq(TIMER_IRQ, timer_interrupt);
 }
 
 void timer_interrupt(void* unused) {
   // Re-arm timer for the next tick
-  asm volatile("msr CNTV_TVAL_EL0, %0"
+  asm volatile("msr CNTP_TVAL_EL0, %0"
                :
                : "r"(timer_interval_ticks)
                : "memory");
