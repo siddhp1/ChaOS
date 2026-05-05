@@ -78,7 +78,7 @@ void irq_controller_init(void) {
   gicr_config(IRQ_RESCHED_SGI, 0x80, true);
 }
 
-void gic_send_sgi(uint64_t sgi_id) {
+void irq_controller_send_sgi(uint64_t sgi_id) {
   uint8_t target = 1u;  // Target CPU 0
   uint64_t val = (target & 0xffffu) | ((sgi_id & 0xf) << 24);
   asm volatile("dsb sy" ::: "memory");

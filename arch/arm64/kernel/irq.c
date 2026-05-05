@@ -56,4 +56,4 @@ void register_irq(uint32_t irq, irq_handler_t handler) {
   }
 }
 
-void irq_send_resched(void) { gic_send_sgi(IRQ_RESCHED_SGI); }
+void irq_send_resched(void) { irq_controller_send_sgi(IRQ_RESCHED_SGI); }
