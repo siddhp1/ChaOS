@@ -10,9 +10,7 @@
 #include "mm/page.h"
 #include "mm/tlb.h"
 #include "mm/user_pgtable.h"
-
-#define DEVICE_PHYS_BASE 0x00000000UL
-#define KERNEL_PHYS_BASE 0x40000000UL
+#include "platform/mmu_map.h"
 
 #define L0_INDEX(va) (((va) >> 39) & 0x1FF)
 #define L1_INDEX(va) (((va) >> 30) & 0x1FF)
@@ -22,18 +20,23 @@
 #define PTE_L2_OAB_MASK 0x0000FFFFFFE00000ULL
 #define PTE_L2_OAB(pte) ((pte) & PTE_L2_OAB_MASK)
 
+#define L1_BLOCK_SIZE (1UL << 30)  // 1 GiB
 #define L2_BLOCK_SIZE (1UL << 21)  // 2 MiB
+
+#define NUM_L1_PTES ((MAP_SIZE + L1_BLOCK_SIZE - 1) / L1_BLOCK_SIZE)
 
 static uint64_t l0_identity_table[NUM_TABLE_ENTRIES]
     __attribute__((aligned(PAGE_SIZE)));
 static uint64_t l1_identity_table[NUM_TABLE_ENTRIES]
+    __attribute__((aligned(PAGE_SIZE)));
+static uint64_t l2_identity_tables[NUM_L1_PTES][NUM_TABLE_ENTRIES]
     __attribute__((aligned(PAGE_SIZE)));
 
 static uint64_t l0_higher_half_table[NUM_TABLE_ENTRIES]
     __attribute__((aligned(PAGE_SIZE)));
 static uint64_t l1_higher_half_table[NUM_TABLE_ENTRIES]
     __attribute__((aligned(PAGE_SIZE)));
-static uint64_t l2_higher_half_table_device[NUM_TABLE_ENTRIES]
+static uint64_t l2_higher_half_tables[NUM_L1_PTES][NUM_TABLE_ENTRIES]
     __attribute__((aligned(PAGE_SIZE)));
 
 static uint64_t* walk_to_l3(uint64_t* l0_table, uint64_t va, bool create) {
@@ -94,41 +97,60 @@ static uint64_t* walk_to_l3(uint64_t* l0_table, uint64_t va, bool create) {
 uint64_t* get_kernel_l0_table(void) { return l0_higher_half_table; }
 
 uintptr_t setup_identity_tables(void) {
-  for (int i = 0; i < NUM_TABLE_ENTRIES; i++) {
-    l0_identity_table[i] = 0;
-    l1_identity_table[i] = 0;
+  memset(l0_identity_table, 0, sizeof(l0_identity_table));
+  memset(l1_identity_table, 0, sizeof(l1_identity_table));
+  memset(l2_identity_tables, 0, sizeof(l2_identity_tables));
+
+  l0_identity_table[0] =
+      PTE_NLTA((uintptr_t)l1_identity_table) | PTE_TABLE | PTE_VALID;
+
+  for (size_t l1_idx = 0; l1_idx < NUM_L1_PTES; l1_idx++) {
+    l1_identity_table[l1_idx] =
+        PTE_NLTA((uintptr_t)l2_identity_tables[l1_idx]) | PTE_TABLE | PTE_VALID;
+
+    for (size_t l2_idx = 0; l2_idx < NUM_TABLE_ENTRIES; l2_idx++) {
+      uintptr_t phys = (l1_idx * L1_BLOCK_SIZE) + (l2_idx * L2_BLOCK_SIZE);
+
+      uint64_t attrs = PTE_AF | PTE_VALID;
+      if (phys_is_device(phys)) {
+        attrs |= PTE_ATTRINDX(0) | PTE_UXN | PTE_PXN;
+      } else {
+        attrs |= PTE_ATTRINDX(1) | PTE_SH_INNER;
+      }
+
+      l2_identity_tables[l1_idx][l2_idx] = PTE_L2_OAB(phys) | attrs;
+    }
   }
-
-  l1_identity_table[0] =
-      (DEVICE_PHYS_BASE) | PTE_VALID | PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(0);
-  l1_identity_table[1] =
-      (KERNEL_PHYS_BASE) | PTE_VALID | PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(1);
-
-  uintptr_t l1_base = (uintptr_t)l1_identity_table;
-  l0_identity_table[0] = PTE_NLTA(l1_base) | PTE_VALID | PTE_TABLE;
 
   return (uintptr_t)l0_identity_table;
 }
 
 uintptr_t setup_higher_half_tables(void) {
-  for (int i = 0; i < NUM_TABLE_ENTRIES; i++) {
-    l0_higher_half_table[i] = 0;
-    l1_higher_half_table[i] = 0;
-    l2_higher_half_table_device[i] = 0;
-  }
-  for (int i = 0; i < NUM_TABLE_ENTRIES; i++) {
-    uintptr_t phys = (uintptr_t)(i * L2_BLOCK_SIZE);
-    l2_higher_half_table_device[i] = PTE_L2_OAB(phys) | PTE_VALID | PTE_AF |
-                                     PTE_SH_INNER | PTE_ATTRINDX(0) | PTE_UXN |
-                                     PTE_PXN;
-  }
-  uintptr_t l2_device_base = (uintptr_t)l2_higher_half_table_device;
-  l1_higher_half_table[0] = PTE_NLTA(l2_device_base) | PTE_VALID | PTE_TABLE;
-  l1_higher_half_table[1] =
-      (KERNEL_PHYS_BASE) | PTE_VALID | PTE_AF | PTE_SH_INNER | PTE_ATTRINDX(1);
+  memset(l0_higher_half_table, 0, sizeof(l0_higher_half_table));
+  memset(l1_higher_half_table, 0, sizeof(l1_higher_half_table));
+  memset(l2_higher_half_tables, 0, sizeof(l2_higher_half_tables));
 
-  uintptr_t l1_hi_base = (uintptr_t)l1_higher_half_table;
-  l0_higher_half_table[0] = PTE_NLTA(l1_hi_base) | PTE_VALID | PTE_TABLE;
+  l0_higher_half_table[0] =
+      PTE_NLTA((uintptr_t)l1_higher_half_table) | PTE_TABLE | PTE_VALID;
+
+  for (size_t l1_idx = 0; l1_idx < NUM_L1_PTES; l1_idx++) {
+    l1_higher_half_table[l1_idx] =
+        PTE_NLTA((uintptr_t)l2_higher_half_tables[l1_idx]) | PTE_TABLE |
+        PTE_VALID;
+
+    for (size_t l2_idx = 0; l2_idx < NUM_TABLE_ENTRIES; l2_idx++) {
+      uintptr_t phys = (l1_idx * L1_BLOCK_SIZE) + (l2_idx * L2_BLOCK_SIZE);
+
+      uint64_t attrs = PTE_AF | PTE_VALID;
+      if (phys_is_device(phys)) {
+        attrs |= PTE_ATTRINDX(0) | PTE_UXN | PTE_PXN;
+      } else {
+        attrs |= PTE_ATTRINDX(1) | PTE_SH_INNER;
+      }
+
+      l2_higher_half_tables[l1_idx][l2_idx] = PTE_L2_OAB(phys) | attrs;
+    }
+  }
 
   return (uintptr_t)l0_higher_half_table;
 }

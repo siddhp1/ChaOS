@@ -8,3 +8,6 @@
 # Object files
 *.elf
 *.o
+
+# Raspberry Pi files
+!rpi/*
