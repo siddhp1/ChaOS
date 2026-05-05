@@ -74,7 +74,7 @@ void irq_controller_init(void) {
   while ((*(volatile uint32_t*)(GICR_RD_BASE + GICR_WAKER)) &
          GICR_WAKER_CHILDREN_ASLEEP);
 
-  gicr_config(IRQ_TIMER_CNTV, 0x80, true);
+  gicr_config(IRQ_TIMER, 0x80, true);
   gicr_config(IRQ_RESCHED_SGI, 0x80, true);
 }
 

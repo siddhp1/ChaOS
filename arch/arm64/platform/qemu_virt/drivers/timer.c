@@ -29,7 +29,7 @@ void timer_init(void) {
   // Enable timer
   asm volatile("msr CNTV_CTL_EL0, %0" : : "r"((uint64_t)1) : "memory");
 
-  register_irq(IRQ_TIMER_CNTV, timer_interrupt);
+  register_irq(IRQ_TIMER, timer_interrupt);
 }
 
 void timer_interrupt(void* unused) {
