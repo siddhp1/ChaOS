@@ -1,5 +1,6 @@
 #include "kernel/initramfs.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "kernel/panic.h"
@@ -9,6 +10,7 @@
 
 #define INIT_FILE_PATH "bin/init"
 
+#define CPIO_NEWC_HDR_SIZE 110
 #define MAX_FILES 32
 
 extern char initramfs_start[];
@@ -19,23 +21,68 @@ static int file_count = 0;
 
 struct task* task_init = NULL;
 
+// TODO: Make a general library function to convert strings to integers
+static inline int hex_to_dec(unsigned char c) {
+  if (c >= '0' && c <= '9') return c - '0';
+  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+  return -1;
+}
+
+static bool parse_hex(const char* s, size_t n, unsigned long* out) {
+  unsigned long v = 0;
+  for (size_t i = 0; i < n; i++) {
+    int d = hex_to_dec((unsigned char)s[i]);
+    if (d < 0) return false;
+    v = (v << 4) | (unsigned long)d;
+  }
+  *out = v;
+  return true;
+}
+
+static inline void* align(void* p, size_t num) {
+  return (void*)(((uintptr_t)p + num - 1) & ~(num - 1));
+}
+
 void initramfs_init(void) {
-  char* init_ptr = initramfs_start;
+  char* curr_hdr = initramfs_start;
+  file_count = 0;
 
-  while (init_ptr < initramfs_end && file_count < MAX_FILES) {
-    files[file_count].name = init_ptr;
-    init_ptr += strlen(init_ptr) + 1;
+  while (curr_hdr + CPIO_NEWC_HDR_SIZE <= initramfs_end &&
+         file_count < MAX_FILES) {
+    if (strncmp(curr_hdr, "070701", 6) != 0) break;  // Not a newc header
 
-    size_t size = *(size_t*)init_ptr;
-    files[file_count].size = size;
-    init_ptr += sizeof(size_t);
+    unsigned long mode = 0;
+    unsigned long filesize = 0;
+    unsigned long namesize = 0;
 
-    files[file_count].data = init_ptr;
-    init_ptr += size;
+    if (!parse_hex(curr_hdr + 14, 8, &mode)) break;
+    if (!parse_hex(curr_hdr + 54, 8, &filesize)) break;
+    if (!parse_hex(curr_hdr + 94, 8, &namesize)) break;
 
-    printk("initramfs: file %s\n", files[file_count].name);
+    // Check name is within bounds
+    if (namesize == 0) break;
+    char* name = curr_hdr + CPIO_NEWC_HDR_SIZE;
+    if (name + namesize > initramfs_end) break;
 
-    file_count++;
+    if (strcmp(name, "TRAILER!!!") == 0) break;
+
+    // Check data is within bounds
+    char* data = align(name + namesize, 4);
+    if (data + filesize > initramfs_end) break;
+
+    // Only load regular files
+    if ((mode & 0170000) == 0100000) {
+      files[file_count].name = name;
+      files[file_count].data = data;
+      files[file_count].size = (size_t)filesize;
+
+      printk("initramfs: file %s\n", files[file_count].name);
+
+      file_count++;
+    }
+
+    curr_hdr = align(data + filesize, 4);
   }
 }
 
