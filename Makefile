@@ -91,9 +91,10 @@ $(INITRAMFS_IMG): userspace/init.bin userspace/hello.bin userspace/sh.bin
 	cp userspace/hello.bin $(INITRAMFS_ROOT)/bin/hello
 	cp userspace/sh.bin $(INITRAMFS_ROOT)/bin/sh
 	( cd $(INITRAMFS_ROOT) && \
-		find . -mindepth 1 -printf '%P\n' | \
+		find . -mindepth 1 -print | \
+		sed 's|^\./||' | \
 		LC_ALL=C sort | \
-		cpio -o -H newc --quiet \
+		cpio -o -H newc \
 	) > $@
 
 # Convert initramfs binary blob into an object file that can be linked into the kernel
