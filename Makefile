@@ -67,8 +67,7 @@ OBJ := $(OBJ:.S=.o)
 DEPS = $(OBJ:.o=.d)
 -include $(DEPS)
 
-INITRAMFS_IMG  = initramfs.img
-INITRAMFS_OBJ  = initramfs_blob.o
+INITRAMFS_ROOT := initramfs_root
 
 # Top-level targets
 .DEFAULT_GOAL := all
@@ -82,11 +81,18 @@ userspace/init.bin userspace/hello.bin userspace/sh.bin : userspace_build
 userspace_build:
 	$(MAKE) -C userspace TOOLCHAIN=$(TOOLCHAIN)
 
+# Archive initramfs as cpio newc image (binary blob)
 $(INITRAMFS_IMG): userspace/init.bin userspace/hello.bin userspace/sh.bin
-	python3 tools/mkinitramfs.py -o $@ \
-		bin/init=userspace/init.bin \
-		bin/hello=userspace/hello.bin \
-		bin/sh=userspace/sh.bin
+	rm -rf $(INITRAMFS_ROOT)
+	mkdir -p $(INITRAMFS_ROOT)/bin
+	cp userspace/init.bin $(INITRAMFS_ROOT)/bin/init
+	cp userspace/hello.bin $(INITRAMFS_ROOT)/bin/hello
+	cp userspace/sh.bin $(INITRAMFS_ROOT)/bin/sh
+	( cd $(INITRAMFS_ROOT) && \
+		find . -mindepth 1 -printf '%P\n' | \
+		LC_ALL=C sort | \
+		cpio -o -H newc --quiet \
+	) > $@
 
 # Convert initramfs binary blob into an object file that can be linked into the kernel
 $(INITRAMFS_OBJ): $(INITRAMFS_IMG)
@@ -109,5 +115,5 @@ kernel8.img: kernel.elf
 
 # Clean
 clean:
-	rm -f $(OBJ) $(DEPS) kernel.elf $(INITRAMFS_IMG) $(INITRAMFS_OBJ) kernel8.img
+	rm -rf $(OBJ) $(DEPS) $(INITRAMFS_IMG) $(INITRAMFS_OBJ) $(INITRAMFS_ROOT) kernel.elf kernel8.img
 	$(MAKE) -C userspace clean
