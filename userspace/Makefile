@@ -1,14 +1,21 @@
+# Toolchain & configuration
 TOOLCHAIN ?= aarch64-elf
 include ../toolchains/$(TOOLCHAIN).mk
 
-CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -I. -MMD -MP -mgeneral-regs-only
 DEBUG ?= true
+
+# Flags
+CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -mgeneral-regs-only
+
+CFLAGS += -I.
+
 ifeq ($(DEBUG),true)
 CFLAGS += -g -O0 -fno-omit-frame-pointer
 endif
 
 LDFLAGS = -T user_linker.ld
 
+# Sources & derived
 LIBC_SRC = \
 	libc/execve.c \
 	libc/exit.c \
@@ -30,7 +37,6 @@ SRC = \
 OBJ = $(SRC:.c=.o)
 OBJ := $(OBJ:.S=.o)
 DEPS = $(OBJ:.o=.d)
-
 -include $(DEPS)
 
 LIBC_OBJ  = $(patsubst %.c,%.o,$(LIBC_SRC))
@@ -40,10 +46,13 @@ PROGRAMS = init hello sh
 BINS     = $(patsubst %,%.bin,$(PROGRAMS))
 ELFS     = $(patsubst %,%.elf,$(PROGRAMS))
 
-all: $(BINS)
-
+# Top-level targets
+.DEFAULT_GOAL := all
 .SECONDARY: $(ELFS) $(OBJ)
 
+all: $(BINS)
+
+# Build rules
 %.bin: %.elf
 	$(OBJCOPY) -O binary $< $@
 
@@ -56,5 +65,6 @@ all: $(BINS)
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Clean
 clean:
 	rm -f $(OBJ) $(DEPS) $(BINS) $(ELFS)

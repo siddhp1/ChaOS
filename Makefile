@@ -8,7 +8,7 @@ PLATFORM ?= qemu_virt
 # Flags
 LDFLAGS = -T arch/arm64/platform/$(PLATFORM)/kernel_linker.ld
 
-CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -mgeneral-regs-only
+CFLAGS = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -mgeneral-regs-only
 
 CFLAGS += -Iinclude
 CFLAGS += -Iarch/arm64/include
@@ -67,6 +67,8 @@ OBJ := $(OBJ:.S=.o)
 DEPS = $(OBJ:.o=.d)
 -include $(DEPS)
 
+INITRAMFS_IMG = initramfs.img
+INITRAMFS_OBJ = initramfs_blob.o
 INITRAMFS_ROOT := initramfs_root
 
 # Top-level targets
