@@ -1,10 +1,14 @@
 Checks: >
+  -*,
   bugprone-*,
   clang-analyzer-*,
-  misc-const-correctness,
+  -clang-analyzer-alpha.*,
+  -clang-analyzer-osx.*,
+  -clang-analyzer-unix.*,
+  misc-include-cleaner,
   misc-redundant-expression,
-  readability-simplify-boolean-expr,
   readability-redundant-control-flow
+  readability-simplify-boolean-expr,
 
 CheckOptions:
 
@@ -14,7 +18,8 @@ CheckOptions:
 ExtraArgs:
 
 - -std=gnu11
+- --target=aarch64-none-elf
 
-HeaderFilterRegex: '^(include|kernel|mm|arch)/'
+HeaderFilterRegex: '^(include|kernel|mm|arch|userspace)/'
 
 WarningsAsErrors: ''
