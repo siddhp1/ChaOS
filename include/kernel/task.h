@@ -49,6 +49,7 @@ struct task* alloc_task(void);
 void create_irq_frame(struct task* task, uintptr_t stack_top,
                       uintptr_t entry_fn, uintptr_t user_stack_top);
 void destroy_task(struct task* task);
+void task_exit(struct task* task, int32_t exit_status);
 
 void add_child(struct task* parent, struct task* child);
 void remove_child(struct task* parent, struct task* child);
