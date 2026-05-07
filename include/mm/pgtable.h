@@ -5,6 +5,11 @@
 
 #define NUM_TABLE_ENTRIES 512
 
+#define L0_INDEX(va) (((va) >> 39) & 0x1FF)
+#define L1_INDEX(va) (((va) >> 30) & 0x1FF)
+#define L2_INDEX(va) (((va) >> 21) & 0x1FF)
+#define L3_INDEX(va) (((va) >> 12) & 0x1FF)
+
 #define PTE_VALID (1UL << 0)
 #define PTE_TABLE (1UL << 1)
 #define PTE_USER (1UL << 6)
