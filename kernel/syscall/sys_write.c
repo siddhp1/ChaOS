@@ -1,4 +1,4 @@
-#include "kernel/uart.h"
+#include "drivers/uart.h"
 #include "kernel/user_access.h"
 #include "syscall_handlers.h"
 

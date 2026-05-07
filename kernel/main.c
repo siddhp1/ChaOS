@@ -1,5 +1,6 @@
 #include <stdint.h>
 
+#include "drivers/uart.h"
 #include "kernel/cpu.h"
 #include "kernel/initramfs.h"
 #include "kernel/irq.h"
@@ -10,7 +11,6 @@
 #include "kernel/scheduler/sleep.h"
 #include "kernel/scheduler/wait.h"
 #include "kernel/task.h"
-#include "kernel/uart.h"
 #include "kernel/user_thread.h"
 #include "mm/heap.h"
 #include "mm/kmap.h"

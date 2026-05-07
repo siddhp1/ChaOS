@@ -5,9 +5,8 @@
 #include "kernel/printk.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
+#include "platform/phys.h"
 
-#define PHYS_START 0x40000000UL
-#define PHYS_END 0x60000000UL
 #define TOTAL_PAGES (PHYS_END - PHYS_START) >> PAGE_SHIFT
 
 extern char page_start[];

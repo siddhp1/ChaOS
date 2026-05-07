@@ -1,8 +1,9 @@
-#include "gic.h"
+#include "irq_controller.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "kernel/irq.h"
 #include "mm/kmap.h"
 
 #define GICD_BASE (KERNEL_VIRT_BASE + 0x08000000UL)
@@ -47,7 +48,7 @@ static void gicr_config(uint32_t int_id, uint8_t prio, bool group1) {
   *enable = mask;
 }
 
-void gic_init(void) {
+void irq_controller_init(void) {
   // Enable the system register interface to the GIC CPU interface for EL1
   uint64_t sre;
   asm volatile("mrs %0, ICC_SRE_EL1" : "=r"(sre));
@@ -73,11 +74,11 @@ void gic_init(void) {
   while ((*(volatile uint32_t*)(GICR_RD_BASE + GICR_WAKER)) &
          GICR_WAKER_CHILDREN_ASLEEP);
 
-  gicr_config(IRQ_TIMER_CNTV, 0x80, true);
+  gicr_config(IRQ_TIMER, 0x80, true);
   gicr_config(IRQ_RESCHED_SGI, 0x80, true);
 }
 
-void gic_send_sgi(uint64_t sgi_id) {
+void irq_controller_send_sgi(uint64_t sgi_id) {
   uint8_t target = 1u;  // Target CPU 0
   uint64_t val = (target & 0xffffu) | ((sgi_id & 0xf) << 24);
   asm volatile("dsb sy" ::: "memory");
@@ -85,12 +86,12 @@ void gic_send_sgi(uint64_t sgi_id) {
   asm volatile("isb" ::: "memory");
 }
 
-uint32_t gic_ack(void) {
+uint32_t irq_controller_ack(void) {
   uint64_t iar;
   asm volatile("mrs %0, ICC_IAR1_EL1" : "=r"(iar));
   return (uint32_t)iar;
 }
 
-void gic_eoi(uint32_t irq) {
+void irq_controller_eoi(uint32_t irq) {
   asm volatile("msr ICC_EOIR1_EL1, %0" : : "r"((uint64_t)irq) : "memory");
 }
