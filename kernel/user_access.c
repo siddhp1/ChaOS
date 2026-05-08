@@ -58,13 +58,19 @@ bool user_range_ok(uintptr_t addr, uint64_t len) {
 }
 
 long copy_from_user(void* dst, const void* src, uint64_t len) {
-  if (!user_range_ok((uintptr_t)src, len)) {
-    return -1;
-  }
+  if (!user_range_ok((uintptr_t)src, len)) return -1;
 
-  if (!user_va_mapped((uintptr_t)src, len)) {
-    return -1;
-  }
+  if (!user_va_mapped((uintptr_t)src, len)) return -1;
+
+  memcpy(dst, src, len);
+
+  return 0;
+}
+
+long copy_to_user(void* dst, const void* src, uint64_t len) {
+  if (!user_range_ok((uintptr_t)dst, len)) return -1;
+
+  if (!user_va_mapped((uintptr_t)dst, len)) return -1;
 
   memcpy(dst, src, len);
 
