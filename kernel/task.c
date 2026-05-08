@@ -2,9 +2,11 @@
 
 #include <stddef.h>
 
+#include "kernel/initramfs.h"
 #include "kernel/irq.h"
 #include "kernel/irq_frame.h"
 #include "kernel/printk.h"
+#include "kernel/scheduler/scheduler.h"
 #include "kernel/string.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
@@ -89,6 +91,41 @@ void destroy_task(struct task* task) {
   if (task_page) {
     free_page(task_page);
   }
+}
+
+void task_exit(struct task* task, int32_t exit_status) {
+  if (!task) {
+    return;
+  }
+
+  task->exit_status = exit_status;
+
+  irq_disable();
+
+  struct task* child = task->first_child;
+  while (child) {
+    struct task* next = child->sibling_next;
+    child->parent = task_init;
+    child->sibling_next = task_init->first_child;
+    task_init->first_child = child;
+    child = next;
+  }
+  task->first_child = NULL;
+
+  if (task_init && task_init->state == TASK_WAIT_CHILD) {
+    enqueue_task(task_init);
+  }
+
+  struct task* parent = task->parent;
+  if (parent && parent->state == TASK_WAIT_CHILD) {
+    enqueue_task(parent);
+  }
+
+  task->state = TASK_ZOMBIE;
+  printk("User process exited with status: %ld\n", exit_status);
+
+  irq_enable();
+  yield();
 }
 
 void add_child(struct task* parent, struct task* child) {

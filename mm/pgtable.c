@@ -12,11 +12,6 @@
 #include "mm/user_pgtable.h"
 #include "platform/mmu_map.h"
 
-#define L0_INDEX(va) (((va) >> 39) & 0x1FF)
-#define L1_INDEX(va) (((va) >> 30) & 0x1FF)
-#define L2_INDEX(va) (((va) >> 21) & 0x1FF)
-#define L3_INDEX(va) (((va) >> 12) & 0x1FF)
-
 #define PTE_L2_OAB_MASK 0x0000FFFFFFE00000ULL
 #define PTE_L2_OAB(pte) ((pte) & PTE_L2_OAB_MASK)
 

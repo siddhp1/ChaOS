@@ -38,15 +38,14 @@ long sys_waitpid(long pid, long status, long a2, long a3, long a4, long a5) {
 
         irq_enable();
 
-        printk("sys_waitpid: Reaping child PID=%u of parent PID=%u\n", child_pid,
-               parent->pid);
+        printk("sys_waitpid: Reaping child PID=%u of parent PID=%u\n",
+               child_pid, parent->pid);
         destroy_task(child);
 
         if (status) {
-          if (!user_range_ok((uintptr_t)status, sizeof(int32_t))) {
+          if (copy_to_user((void*)status, &child_status, sizeof(int32_t)) < 0) {
             return -1;
           }
-          *(int32_t*)status = child_status;
         }
         return child_pid;
       }
