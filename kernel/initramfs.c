@@ -11,6 +11,12 @@
 #define INIT_FILE_PATH "bin/init"
 
 #define CPIO_NEWC_HDR_SIZE 110
+#define CPIO_NEWC_MAGIC "070701"
+#define CPIO_MODE_OFFSET 14
+#define CPIO_FILESIZE_OFFSET 54
+#define CPIO_NAMESIZE_OFFSET 94
+#define CPIO_TRAILER "TRAILER!!!"
+
 #define MAX_FILES 32
 
 extern char initramfs_start[];
@@ -50,22 +56,21 @@ void initramfs_init(void) {
 
   while (curr_hdr + CPIO_NEWC_HDR_SIZE <= initramfs_end &&
          file_count < MAX_FILES) {
-    if (strncmp(curr_hdr, "070701", 6) != 0) break;  // Not a newc header
+    if (strncmp(curr_hdr, CPIO_NEWC_MAGIC, 6) != 0) break;  // Not a newc header
 
     unsigned long mode = 0;
     unsigned long filesize = 0;
     unsigned long namesize = 0;
 
-    if (!parse_hex(curr_hdr + 14, 8, &mode)) break;
-    if (!parse_hex(curr_hdr + 54, 8, &filesize)) break;
-    if (!parse_hex(curr_hdr + 94, 8, &namesize)) break;
+    if (!parse_hex(curr_hdr + CPIO_MODE_OFFSET, 8, &mode) ||
+        !parse_hex(curr_hdr + CPIO_FILESIZE_OFFSET, 8, &filesize) ||
+        !parse_hex(curr_hdr + CPIO_NAMESIZE_OFFSET, 8, &namesize))
+      break;
 
-    // Check name is within bounds
-    if (namesize == 0) break;
+    // Check name is within bounds and name is not trailer
     char* name = curr_hdr + CPIO_NEWC_HDR_SIZE;
-    if (name + namesize > initramfs_end) break;
-
-    if (strcmp(name, "TRAILER!!!") == 0) break;
+    if (namesize == 0 || name + namesize > initramfs_end) break;
+    if (strcmp(name, CPIO_TRAILER) == 0) break;
 
     // Check data is within bounds
     char* data = align(name + namesize, 4);
