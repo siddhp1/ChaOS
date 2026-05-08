@@ -11,20 +11,24 @@
 #include "mm/pgtable.h"
 #include "mm/user_pgtable.h"
 
-static uint64_t* lookup_l3_pte(uint64_t* l0_table, uint64_t va) {
+static int lookup_l3_pte_value(uint64_t* l0_table, uint64_t va,
+                               uint64_t* entry) {
+  if (!entry) return -1;
+
   uint64_t l0e = l0_table[L0_INDEX(va)];
-  if (!PTE_IS_VALID(l0e) || !PTE_IS_TABLE(l0e)) return NULL;
+  if (!PTE_IS_VALID(l0e) || !PTE_IS_TABLE(l0e)) return -1;
 
   uint64_t* l1 = (uint64_t*)(KERNEL_VIRT_BASE + PTE_NLTA(l0e));
   uint64_t l1e = l1[L1_INDEX(va)];
-  if (!PTE_IS_VALID(l1e) || !PTE_IS_TABLE(l1e)) return NULL;
+  if (!PTE_IS_VALID(l1e) || !PTE_IS_TABLE(l1e)) return -1;
 
   uint64_t* l2 = (uint64_t*)(KERNEL_VIRT_BASE + PTE_NLTA(l1e));
   uint64_t l2e = l2[L2_INDEX(va)];
-  if (!PTE_IS_VALID(l2e) || !PTE_IS_TABLE(l2e)) return NULL;
+  if (!PTE_IS_VALID(l2e) || !PTE_IS_TABLE(l2e)) return -1;
 
   uint64_t* l3 = (uint64_t*)(KERNEL_VIRT_BASE + PTE_NLTA(l2e));
-  return &l3[L3_INDEX(va)];
+  *entry = l3[L3_INDEX(va)];
+  return 0;
 }
 
 bool user_va_mapped(uintptr_t va, size_t len) {
@@ -37,13 +41,12 @@ bool user_va_mapped(uintptr_t va, size_t len) {
   uint64_t* l0 = (uint64_t*)(KERNEL_VIRT_BASE + current_task->ttbr0);
 
   for (uintptr_t addr = start; addr <= end; addr += PAGE_SIZE) {
-    uint64_t* pte = lookup_l3_pte(l0, addr);
-    if (!pte) return false;
+    uint64_t pte = 0;
+    if (lookup_l3_pte_value(l0, addr, &pte) < 0) return false;
 
-    uint64_t entry = *pte;
-    if (!PTE_IS_VALID(entry)) return false;
-    if (!(entry & PTE_USER)) return false;
-    if (!(entry & PTE_AF)) return false;
+    if (!PTE_IS_VALID(pte)) return false;
+    if (!(pte & PTE_USER)) return false;
+    if (!(pte & PTE_AF)) return false;
   }
 
   return true;

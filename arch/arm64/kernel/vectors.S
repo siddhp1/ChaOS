@@ -96,7 +96,7 @@ irq_el1h:
     mov x0, sp
     bl schedule
     mov sp, x0
-    b el0_return
+    b interrupt_return
 
 fiq_el1h:
     bl panic_fiq
@@ -159,8 +159,7 @@ sync_el0:
 handle_svc:
     mov x0, sp
     bl handle_el0_sync
-
-    b el0_return
+    b interrupt_return
 
 irq_el0:
     b irq_el1h
@@ -179,7 +178,7 @@ data_abort_el0:
     mov x0, sp
     bl schedule
     mov sp, x0
-    b el0_return
+    b interrupt_return
 
 inst_abort_el0:
     bl prefetch_abort_handler
@@ -187,9 +186,9 @@ inst_abort_el0:
     mov x0, sp
     bl schedule
     mov sp, x0
-    b el0_return
+    b interrupt_return
 
-el0_return:
+interrupt_return:
     ldr x0, [sp, #IRQ_OFF_USER_SP]
     msr SP_EL0, x0
 
