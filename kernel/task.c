@@ -7,6 +7,7 @@
 #include "kernel/irq_frame.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler/scheduler.h"
+#include "kernel/scheduler/wait.h"
 #include "kernel/string.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
@@ -31,6 +32,7 @@ struct task* alloc_task(void) {
   struct task* t = (struct task*)kmap(p);
 
   memset(t, 0, sizeof(*t));
+  wait_queue_init(&t->wait_child_queue);
 
   return t;
 }
@@ -112,13 +114,13 @@ void task_exit(struct task* task, int32_t exit_status) {
   }
   task->first_child = NULL;
 
-  if (task_init && task_init->state == TASK_WAIT_CHILD) {
-    enqueue_task(task_init);
+  if (task_init && task_init->state == TASK_BLOCKED) {
+    unwait(&task_init->wait_child_queue);
   }
 
   struct task* parent = task->parent;
-  if (parent && parent->state == TASK_WAIT_CHILD) {
-    enqueue_task(parent);
+  if (parent && parent->state == TASK_BLOCKED) {
+    unwait(&parent->wait_child_queue);
   }
 
   task->state = TASK_ZOMBIE;
