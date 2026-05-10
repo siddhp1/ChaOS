@@ -70,6 +70,9 @@ void kernel_entry(void) {
   irq_init();
   printk("IRQ initialized\n");
 
+  uart_irq_init();
+  printk("UART IRQ initialized\n");
+
   memory_init();
   printk("Memory initialized\n");
 

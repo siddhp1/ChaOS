@@ -92,10 +92,6 @@ irq_el1h:
     str x0, [sp, #IRQ_OFF_USER_SP]
 
     bl irq_handler
-
-    mov x0, sp
-    bl schedule
-    mov sp, x0
     b interrupt_return
 
 fiq_el1h:
@@ -174,21 +170,17 @@ serr_el0:
 
 data_abort_el0:
     bl data_abort_handler
-
-    mov x0, sp
-    bl schedule
-    mov sp, x0
     b interrupt_return
 
 inst_abort_el0:
     bl prefetch_abort_handler
-
-    mov x0, sp
-    bl schedule
-    mov sp, x0
     b interrupt_return
 
 interrupt_return:
+    mov x0, sp
+    bl schedule
+    mov sp, x0
+
     ldr x0, [sp, #IRQ_OFF_USER_SP]
     msr SP_EL0, x0
 
