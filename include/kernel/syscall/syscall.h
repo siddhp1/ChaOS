@@ -9,6 +9,8 @@
 #define SYS_EXECVE 3
 #define SYS_FORK 4
 #define SYS_READ 5
+#define SYS_WAIT 6
+#define SYS_WAITPID 7
 
 #define SYS_MAX 8
 

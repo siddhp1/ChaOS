@@ -19,44 +19,34 @@
 #include "mm/page.h"
 #include "mm/pgtable.h"
 
-#define DELAY_CYCLES 10000000
-#define SLEEP_TICKS 100
+#define DELAY_CYCLES 1000000
+#define SLEEP_TICKS 500
 
 void thread_a(void* arg) {
+  (void)arg;
+  uint32_t n = 0;
   while (1) {
-    printk("A\n");
     for (volatile int i = 0; i < DELAY_CYCLES; i++);
+    if ((n++ % 1000) == 0) printk("A\n");
+    yield();
   }
 }
 
 void thread_b(void* arg) {
+  (void)arg;
+  uint32_t n = 0;
   while (1) {
-    printk("B\n");
     for (volatile int i = 0; i < DELAY_CYCLES; i++);
+    if ((n++ % 1000) == 0) printk("B\n");
+    yield();
   }
 }
 
 void thread_sleep_test(void* arg) {
+  (void)arg;
   while (1) {
-    printk("Going to sleep\n");
     task_sleep(SLEEP_TICKS, current_task);
-    printk("Woke up!\n");
-  }
-}
-
-void thread_wait_test(void* arg) {
-  while (1) {
-    printk("Waiting for event\n");
-    task_wait(current_task);
-    printk("Got event!\n");
-  }
-}
-
-void thread_unwaiter(void* arg) {
-  while (1) {
-    for (volatile int i = 0; i < DELAY_CYCLES * 5; i++);
-    printk("Unwaiting wait queue\n");
-    unwait_all();
+    printk("[sleep_test]\n");
   }
 }
 
@@ -69,6 +59,9 @@ void kernel_entry(void) {
 
   irq_init();
   printk("IRQ initialized\n");
+
+  uart_irq_init();
+  printk("UART IRQ initialized\n");
 
   memory_init();
   printk("Memory initialized\n");
@@ -95,19 +88,15 @@ void kernel_entry(void) {
   struct task* t1 = kthread_create(thread_a, NULL);
   struct task* t2 = kthread_create(thread_b, NULL);
   struct task* t3 = kthread_create(thread_sleep_test, NULL);
-  struct task* t4 = kthread_create(thread_wait_test, NULL);
-  struct task* t5 = kthread_create(thread_unwaiter, NULL);
 
   initramfs_init();
   printk("Initramfs initialized\n");
 
-  struct task* init_task = load_init();
-  if (!init_task) {
-    printk("Failed to load init\n");
-  }
+  load_init();
 
   irq_enable();
   yield();
+
   while (1) {
     asm volatile("WFI");
   }

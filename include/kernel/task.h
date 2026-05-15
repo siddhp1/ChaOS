@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "kernel/scheduler/wait.h"
+
 // Number of hardware timer interrupts before scheduling
 #define DEFAULT_TIME_SLICE 1
 
@@ -15,7 +17,7 @@ enum task_state {
   TASK_RUNNING,
   TASK_BLOCKED,
   TASK_ZOMBIE,
-  TASK_SLEEPING
+  TASK_SLEEPING,
 };
 
 struct task {
@@ -41,6 +43,7 @@ struct task {
   struct task* sibling_next;
 
   struct task* next;
+  struct wait_queue wait_child_queue;
 };
 
 void* alloc_stack(void);
@@ -48,6 +51,7 @@ struct task* alloc_task(void);
 void create_irq_frame(struct task* task, uintptr_t stack_top,
                       uintptr_t entry_fn, uintptr_t user_stack_top);
 void destroy_task(struct task* task);
+void task_exit(struct task* task, int32_t exit_status);
 
 void add_child(struct task* parent, struct task* child);
 void remove_child(struct task* parent, struct task* child);

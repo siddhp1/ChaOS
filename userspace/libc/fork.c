@@ -1,3 +1,3 @@
 #include "libc.h"
 
-int fork(void) { return (int)syscall(SYS_FORK, 0, 0, 0, 0, 0, 0); }
+long fork(void) { return syscall(SYS_FORK, 0, 0, 0, 0, 0, 0); }

@@ -25,11 +25,12 @@ long sys_write(long file_descriptor, long buffer, long length, long a3, long a4,
       return -1;
     }
 
-    for (long i = 0; i < chunk; i++) {
-      uart_putc(kbuf[i]);
+    long out = uart_write(kbuf, chunk);
+    if (out < 0) {
+      return (written > 0) ? written : -1;
     }
 
-    written += chunk;
+    written += out;
   }
 
   return written;

@@ -5,6 +5,8 @@
 
 #include "kernel/task.h"
 
+extern struct task* task_init;
+
 struct initramfs_file {
   const char* name;
   void* data;
