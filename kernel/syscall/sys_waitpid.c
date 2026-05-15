@@ -5,6 +5,7 @@
 #include "kernel/irq.h"
 #include "kernel/printk.h"
 #include "kernel/scheduler/scheduler.h"
+#include "kernel/scheduler/wait.h"
 #include "kernel/user_access.h"
 #include "syscall_handlers.h"
 
@@ -70,8 +71,6 @@ long sys_waitpid(long pid, long status, long a2, long a3, long a4, long a5) {
       }
     }
 
-    parent->state = TASK_WAIT_CHILD;
-    irq_enable();
-    yield();
+    task_wait(&parent->wait_child_queue, parent);
   }
 }

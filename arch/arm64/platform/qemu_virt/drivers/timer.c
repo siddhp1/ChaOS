@@ -39,7 +39,6 @@ void timer_interrupt(void* unused) {
                : "r"(timer_interval_ticks)
                : "memory");
 
-  printk("TICK\n");
   system_tick++;
   scheduler_tick();
 }

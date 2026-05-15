@@ -1,12 +1,16 @@
 #ifndef WAIT_H
 #define WAIT_H
 
-#include "kernel/task.h"
+struct task;
 
-extern struct task* wait_queue;
+struct wait_queue {
+  struct task* head;
+  struct task* tail;
+};
 
-void task_wait(struct task* task);
-void unwait(void);
-void unwait_all(void);
+void wait_queue_init(struct wait_queue* wq);
+void task_wait(struct wait_queue* wq, struct task* task);
+void unwait(struct wait_queue* wq);
+void unwait_all(struct wait_queue* wq);
 
 #endif
