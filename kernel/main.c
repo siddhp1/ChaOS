@@ -19,8 +19,8 @@
 #include "mm/page.h"
 #include "mm/pgtable.h"
 
-#define DELAY_CYCLES 10000000 / 10
-#define SLEEP_TICKS 100 * 5
+#define DELAY_CYCLES 1000000
+#define SLEEP_TICKS 500
 
 void thread_a(void* arg) {
   (void)arg;
