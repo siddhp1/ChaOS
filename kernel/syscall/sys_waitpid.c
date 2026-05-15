@@ -72,6 +72,5 @@ long sys_waitpid(long pid, long status, long a2, long a3, long a4, long a5) {
     }
 
     task_wait(&parent->wait_child_queue, parent);
-    irq_enable();
   }
 }

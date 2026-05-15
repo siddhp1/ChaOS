@@ -208,8 +208,7 @@ void uart_putc(char c) {
   if (c == '\n') {
     uart_putc('\r');
   }
-  while (UART_FR & TXFF) {
-  }
+  while (UART_FR & TXFF);
   UART_DR = (uint32_t)(uint8_t)c;
 }
 

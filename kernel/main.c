@@ -19,14 +19,14 @@
 #include "mm/page.h"
 #include "mm/pgtable.h"
 
-#define DELAY_CYCLES 10000000
-#define SLEEP_TICKS 100
+#define DELAY_CYCLES 10000000 / 10
+#define SLEEP_TICKS 100 * 5
 
 void thread_a(void* arg) {
   (void)arg;
   uint32_t n = 0;
   while (1) {
-    for (volatile int i = 0; i < DELAY_CYCLES / 10; i++);
+    for (volatile int i = 0; i < DELAY_CYCLES; i++);
     if ((n++ % 1000) == 0) printk("A\n");
     yield();
   }
@@ -36,7 +36,7 @@ void thread_b(void* arg) {
   (void)arg;
   uint32_t n = 0;
   while (1) {
-    for (volatile int i = 0; i < DELAY_CYCLES / 10; i++);
+    for (volatile int i = 0; i < DELAY_CYCLES; i++);
     if ((n++ % 1000) == 0) printk("B\n");
     yield();
   }
@@ -45,7 +45,7 @@ void thread_b(void* arg) {
 void thread_sleep_test(void* arg) {
   (void)arg;
   while (1) {
-    task_sleep(SLEEP_TICKS * 5, current_task);
+    task_sleep(SLEEP_TICKS, current_task);
     printk("[sleep_test]\n");
   }
 }

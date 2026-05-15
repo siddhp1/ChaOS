@@ -28,6 +28,7 @@
 #define DISABLE_IRQ_BASIC (*(volatile uint32_t*)(INTC_BASE + 0x224))
 
 #define IRQ_BANK2_UART0 25
+#define IRQ_PENDING_BANK2_UART0 (1U << IRQ_BANK2_UART0)
 
 void irq_controller_init(void) {
   // Disable all banks
@@ -38,7 +39,7 @@ void irq_controller_init(void) {
   CORE0_TIMER_IRQ_CTRL = CORE_CNTPNS_IRQ_EN;
   CORE0_MBOX_IRQ_CTRL = CORE_MBOX0_IRQ_EN;
 
-  ENABLE_IRQ_BANK2 = (1U << IRQ_BANK2_UART0);
+  ENABLE_IRQ_BANK2 = (IRQ_PENDING_BANK2_UART0);
 
   asm volatile("dsb sy" ::: "memory");
   asm volatile("isb" ::: "memory");
@@ -64,7 +65,7 @@ uint32_t irq_controller_ack(void) {
     return IRQ_RESCHED_SGI;
   }
 
-  if (IRQ_PENDING_BANK2 & (1U << IRQ_BANK2_UART0)) {
+  if (IRQ_PENDING_BANK2 & (IRQ_PENDING_BANK2_UART0)) {
     return IRQ_UART;
   }
 
