@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-#include "kernel/printk.h"
+#include "kernel/irq.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
 #include "platform/phys.h"
@@ -13,7 +13,7 @@ extern char page_start[];
 
 static struct page_internal pages[TOTAL_PAGES];
 
-struct page_internal* free_list;
+static struct page_internal* free_list;
 
 void page_init(void) {
   uintptr_t page_start_phys = kernel_to_phys((uintptr_t)page_start);
@@ -40,22 +40,31 @@ void page_init(void) {
 }
 
 struct page* alloc_page(void) {
-  if (!free_list) return NULL;
+  uint64_t daif = irq_save();
+  if (!free_list) {
+    irq_restore(daif);
+    return NULL;
+  }
 
   struct page_internal* ptr = free_list;
   free_list = ptr->next;
+  irq_restore(daif);
+
   ptr->next = NULL;
   ptr->pub.refcount = 1;
+
   return &ptr->pub;
 }
 
 void free_page(struct page* page) {
   if (!page) return;
 
+  uint64_t daif = irq_save();
   struct page_internal* ptr = (struct page_internal*)page;
   ptr->pub.refcount = 0;
   ptr->next = free_list;
   free_list = ptr;
+  irq_restore(daif);
 }
 
 uintptr_t page_to_phys(struct page* page) {
