@@ -9,11 +9,12 @@
 #include "mm/kmap.h"
 #include "mm/page.h"
 
+#define CACHE_CNT (sizeof(obj_sizes) / sizeof(uint16_t))
+#define MAGIC 0x12345678UL
+
 // TODO: Add more object sizes here
 // Currently, we only need 32 for initramfs_file and 128 for task
 static const uint16_t obj_sizes[] = {32, 128};
-#define CACHE_CNT (sizeof(obj_sizes) / sizeof(uint16_t))
-#define MAGIC 0x12345678UL
 
 struct slab_obj {
   struct slab_obj* next;
@@ -137,12 +138,6 @@ void slab_free(void* ptr) {
   struct slab_obj* obj = (struct slab_obj*)ptr;
   obj->next = sp->free_list;
   sp->free_list = obj;
-
-  if (sp->num_in_use == 0) {
-    irq_restore(daif);
-    return;
-  }
-
   sp->num_in_use--;
 
   if (sp->num_in_use == 0) {
