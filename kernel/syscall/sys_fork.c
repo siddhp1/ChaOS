@@ -7,6 +7,7 @@
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/string.h"
 #include "kernel/task.h"
+#include "mm/heap.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
 #include "mm/pgtable.h"
@@ -35,7 +36,7 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   struct page* parent_pgd_page = phys_to_page(parent->ttbr0);
   if (!parent_pgd_page) {
     printk("sys_fork: Invalid parent TTBR0\n");
-    free_page((struct page*)child);
+    destroy_task(child);
     return -1;
   }
 
@@ -43,7 +44,7 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   uintptr_t child_pgd_va = copy_user_pgd(parent_pgd_va);
   if (!child_pgd_va) {
     printk("sys_fork: Failed to copy page tables\n");
-    free_page((struct page*)child);
+    destroy_task(child);
     return -1;
   }
 

@@ -9,6 +9,7 @@
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/scheduler/wait.h"
 #include "kernel/string.h"
+#include "mm/heap.h"
 #include "mm/kmap.h"
 #include "mm/page.h"
 #include "mm/user_pgtable.h"
@@ -24,14 +25,9 @@ void* alloc_stack(void) {
 }
 
 struct task* alloc_task(void) {
-  struct page* p = alloc_page();
-  if (!p) {
-    return NULL;
-  }
+  struct task* t = (struct task*)kzalloc(sizeof(struct task));
+  if (t == NULL) return NULL;
 
-  struct task* t = (struct task*)kmap(p);
-
-  memset(t, 0, sizeof(*t));
   wait_queue_init(&t->wait_child_queue);
 
   return t;
@@ -87,12 +83,7 @@ void destroy_task(struct task* task) {
     task->stack = 0;
   }
 
-  uint64_t task_va = (uint64_t)task;
-  uint64_t task_phys = task_va - KERNEL_VIRT_BASE;
-  struct page* task_page = phys_to_page(task_phys);
-  if (task_page) {
-    free_page(task_page);
-  }
+  kfree(task);
 }
 
 void task_exit(struct task* task, int32_t exit_status) {

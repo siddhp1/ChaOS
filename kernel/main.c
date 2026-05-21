@@ -68,18 +68,34 @@ void kernel_entry(void) {
 
   printk("Testing L3 page allocation...\n");
 
-  void* p1 = kmalloc(1);
-  void* p2 = kmalloc(1);
-  void* p3 = kmalloc(1);
+  // 16 byte allocations
+  int* p1 = kmalloc(sizeof(int) * 4);
+  int* p2 = kmalloc(sizeof(int) * 4);
+  int* p3 = kmalloc(sizeof(int) * 4);
+
+  // 128 byte allocations
+  int* p4 = kmalloc(sizeof(int) * 32);
+  int* p5 = kmalloc(sizeof(int) * 32);
+  int* p6 = kmalloc(sizeof(int) * 32);
 
   printk("Allocated p1=%lx\n", (uint64_t)p1);
   printk("Allocated p2=%lx\n", (uint64_t)p2);
   printk("Allocated p3=%lx\n", (uint64_t)p3);
+  printk("Allocated p4=%lx\n", (uint64_t)p4);
+  printk("Allocated p5=%lx\n", (uint64_t)p5);
+  printk("Allocated p6=%lx\n", (uint64_t)p6);
 
-  *(char*)p1 = 'A';
-  *(char*)p2 = 'B';
-  *(char*)p3 = 'C';
+  for (int i = 0; i < 32; ++i) {
+    p4[i] = i;
+  }
 
+  kfree(p4);
+  kmalloc(128);
+
+  // Starting at i = 2 since the first 8 bytes are overwritten on free()
+  for (int i = 2; i < 32; ++i) {
+    if (p4[i] != i) printk("Write test failed\n");
+  }
   printk("Write test passed\n");
 
   scheduler_init();

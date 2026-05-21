@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "kernel/align.h"
 #include "kernel/panic.h"
 #include "kernel/printk.h"
 #include "kernel/string.h"
@@ -46,10 +47,6 @@ static bool parse_hex(const char* s, size_t n, unsigned long* out) {
   return true;
 }
 
-static inline void* align(void* p, size_t num) {
-  return (void*)(((uintptr_t)p + num - 1) & ~(num - 1));
-}
-
 void initramfs_init(void) {
   char* curr_hdr = initramfs_start;
   file_count = 0;
@@ -73,7 +70,7 @@ void initramfs_init(void) {
     if (strcmp(name, CPIO_TRAILER) == 0) break;
 
     // Check data is within bounds
-    char* data = align(name + namesize, 4);
+    char* data = align_up(name + namesize, 4);
     if (data + filesize > initramfs_end) break;
 
     // Only load regular files
@@ -87,7 +84,7 @@ void initramfs_init(void) {
       file_count++;
     }
 
-    curr_hdr = align(data + filesize, 4);
+    curr_hdr = align_up(data + filesize, 4);
   }
 }
 

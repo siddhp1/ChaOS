@@ -56,10 +56,10 @@ SRC = \
 	kernel/scheduler/wait.c \
 	mm/heap.c \
 	mm/kmap.c \
-	mm/kvmalloc.c \
 	mm/memory.c \
 	mm/page.c \
 	mm/pgtable.c \
+	mm/slab.c \
 	mm/user_pgtable.c
 
 OBJ = $(SRC:.c=.o)
