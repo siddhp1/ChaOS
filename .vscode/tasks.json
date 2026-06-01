@@ -1,0 +1,46 @@
+{
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "toolchain",
+      "description": "Toolchain",
+      "type": "pickString",
+      "options": [
+        "aarch64-elf",
+        "aarch64-linux-gnu"
+      ],
+      "default": "aarch64-elf"
+    },
+    {
+      "id": "platform",
+      "description": "Target platform",
+      "type": "pickString",
+      "options": [
+        "qemu_virt",
+        "rpi"
+      ],
+      "default": "qemu_virt"
+    }
+  ],
+  "tasks": [
+    {
+      "label": "Run Clang-Tidy",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "-c",
+        "bear -- make clean && bear -- make PLATFORM=${input:platform} TOOLCHAIN=${input:toolchain} DEBUG=false image && run-clang-tidy -p . $(find . -name '*.c') && make clean && rm -f compile_commands.json"
+      ],
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    }
+  ]
+}
