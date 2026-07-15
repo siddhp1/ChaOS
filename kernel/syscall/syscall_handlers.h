@@ -10,5 +10,7 @@ long sys_wait(long, long, long, long, long, long);
 long sys_waitpid(long, long, long, long, long, long);
 long sys_open(long, long, long, long, long, long);
 long sys_close(long, long, long, long, long, long);
+long sys_dup(long, long, long, long, long, long);
+long sys_dup2(long, long, long, long, long, long);
 
 #endif
