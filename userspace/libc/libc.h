@@ -10,6 +10,8 @@
 #define SYS_WAITPID 7
 #define SYS_OPEN 8
 #define SYS_CLOSE 9
+#define SYS_DUP 10
+#define SYS_DUP2 11
 
 long syscall(long nr, long a0, long a1, long a2, long a3, long a4, long a5);
 
