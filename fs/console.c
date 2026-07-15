@@ -3,6 +3,15 @@
 #include "drivers/uart.h"
 #include "fs/file.h"
 
+static const struct file_ops console_ops = {
+    .read = console_read, .write = console_write, .release = NULL};
+
+static struct file console_file = {.refcount = 1,
+                                   .flags = 0,
+                                   .position = 0,
+                                   .ops = &console_ops,
+                                   .data = NULL};
+
 long console_read(struct file* file, void* buf, size_t len) {
   (void)file;
 
@@ -48,11 +57,46 @@ long console_write(struct file* file, const void* buf, size_t len) {
   return uart_write((const char*)buf, len);
 }
 
-static const struct file_ops console_ops = {
-    .read = console_read, .write = console_write, .close = NULL};
+int process_stdio_init(struct task* task) {
+  if (!task) {
+    return -1;
+  }
 
-struct file console_file = {.refcount = 1,
-                            .flags = 0,
-                            .position = 0,
-                            .ops = &console_ops,
-                            .data = NULL};
+  struct file* file;
+
+  file = file_alloc(&console_ops, 0, &console_file);
+  if (!file) {
+    goto fail;
+  }
+
+  if (fd_install_at(task, file, 0) < 0) {
+    file_unref(file);
+    goto fail;
+  }
+
+  file = file_alloc(&console_ops, 0, &console_file);
+  if (!file) {
+    goto fail;
+  }
+
+  if (fd_install_at(task, file, 1) < 0) {
+    file_unref(file);
+    goto fail;
+  }
+
+  file = file_alloc(&console_ops, 0, &console_file);
+  if (!file) {
+    goto fail;
+  }
+
+  if (fd_install_at(task, file, 2) < 0) {
+    file_unref(file);
+    goto fail;
+  }
+
+  return 0;
+
+fail:
+  fd_table_close_all(task);
+  return -1;
+}
