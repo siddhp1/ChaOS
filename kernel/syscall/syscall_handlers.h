@@ -8,5 +8,7 @@ long sys_fork(long, long, long, long, long, long);
 long sys_read(long, long, long, long, long, long);
 long sys_wait(long, long, long, long, long, long);
 long sys_waitpid(long, long, long, long, long, long);
+long sys_open(long, long, long, long, long, long);
+long sys_close(long, long, long, long, long, long);
 
 #endif
