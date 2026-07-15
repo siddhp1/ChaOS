@@ -12,6 +12,11 @@ static struct file console_file = {.refcount = 1,
                                    .ops = &console_ops,
                                    .data = NULL};
 
+// TODO: Consider removing
+struct file* console_file_open(int flags) {
+  return file_alloc(&console_ops, flags, &console_file);
+}
+
 long console_read(struct file* file, void* buf, size_t len) {
   (void)file;
 
