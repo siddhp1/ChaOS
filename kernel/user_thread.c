@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "fs/console.h"
 #include "kernel/kthread.h"
 #include "kernel/panic.h"
 #include "kernel/pid.h"
@@ -62,6 +63,11 @@ struct task* create_user_process(void* code, size_t code_size) {
   t->arg = NULL;
   t->stack = (uint64_t)kstack;
   t->time_slice = DEFAULT_TIME_SLICE;
+
+  // Populate fd table
+  t->fd_table[0] = &console_file;  // stdin
+  t->fd_table[1] = &console_file;  // stdout
+  t->fd_table[2] = &console_file;  // stderr
 
   create_irq_frame(t, kstack_top, (uintptr_t)setup_user_mode, USER_STACK_TOP);
 
@@ -134,6 +140,11 @@ int load_user_image(struct task* t, const void* code, size_t code_size) {
   if (old_pgd) {
     free_user_pgd((uintptr_t)old_pgd);
   }
+
+  // Populate fd table
+  t->fd_table[0] = &console_file;  // stdin
+  t->fd_table[1] = &console_file;  // stdout
+  t->fd_table[2] = &console_file;  // stderr
 
   return 0;
 }

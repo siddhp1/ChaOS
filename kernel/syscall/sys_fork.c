@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "fs/file.h"
 #include "kernel/irq_frame.h"
 #include "kernel/pid.h"
 #include "kernel/printk.h"
@@ -72,6 +73,11 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
   child->irq_sp = child_frame_addr;
 
   child->time_slice = DEFAULT_TIME_SLICE;
+
+  // Populate fd table
+  for (size_t i = 0; i <= MAX_FDS; ++i) {
+    child->fd_table[i] = parent->fd_table[i];
+  }
 
   add_child(parent, child);
 
