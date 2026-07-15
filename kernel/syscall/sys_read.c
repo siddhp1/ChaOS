@@ -1,43 +1,51 @@
 #include "drivers/uart.h"
+#include "fs/file.h"
+#include "kernel/scheduler/scheduler.h"
 #include "kernel/user_access.h"
 
-long sys_read(long fd, long buffer, long length, long a3, long a4, long a5) {
+long sys_read(long fd, long buf, long len, long a3, long a4, long a5) {
   (void)a3;
   (void)a4;
   (void)a5;
 
-  if (fd != 0) return -1;
-  if (length < 0) return -1;
-  if (length == 0) return 0;
-  if (!user_range_ok((uintptr_t)buffer, (uint64_t)length)) return -1;
+  if (fd < 0 || fd >= MAX_FDS) return -1;
 
-  char* buf = (char*)buffer;
-  long i = 0;
+  if (len < 0) return -1;
+  if (len == 0) return 0;
 
-  while (i < length) {
-    char c;
-    if (uart_read(&c, 1) != 1) break;
+  struct file* file = fd_get(current_task, fd);
+  if (!file) return -1;
 
-    if (c == '\r' || c == '\n') {
-      char nl = '\n';
-      if (copy_to_user(buf + i, &nl, 1) < 0) return -1;
-      uart_write("\n", 1);
-      i++;
-      break;
+  if (!file->ops || !file->ops->write) return -1;
+
+  if (!user_range_ok((uintptr_t)buf, (uint64_t)len)) return -1;
+
+  char* user_buf = (char*)buf;
+
+  // Kernel staging buffer to avoid direct EL1 writes to user pointer
+  char kbuf[128];
+
+  long read = 0;
+
+  while (read < len) {
+    long long remaining = len - read;
+    long chunk =
+        remaining > (long)sizeof(kbuf) ? (long)sizeof(kbuf) : remaining;
+
+    long result = file->ops->read(file, kbuf, chunk);
+
+    if (result < 0) return read > 0 ? read : result;
+    if (result == 0) break;
+    if (result > chunk) return read > 0 ? read : -1;
+
+    if (copy_to_user(user_buf + read, kbuf, (uint64_t)result) < 0) {
+      return read > 0 ? read : -1;
     }
 
-    if (c == '\b' || c == 127) {
-      if (i > 0) {
-        i--;
-        uart_write("\b \b", 3);
-      }
-      continue;
-    }
+    read += result;
 
-    if (copy_to_user(buf + i, &c, 1) < 0) return -1;
-    uart_write(&c, 1);
-    i++;
+    if (result < chunk) break;
   }
 
-  return i;
+  return read;
 }
