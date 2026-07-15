@@ -8,6 +8,11 @@
 // }
 
 long console_write(struct file* file, const void* buf, size_t len) {
+(void)file;
+
+  if (!buf || len < 0) return -1;
+  if (len == 0) return 0;
+
   return uart_write((const char*)buf, len);
 }
 
