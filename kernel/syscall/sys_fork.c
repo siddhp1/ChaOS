@@ -74,9 +74,10 @@ long sys_fork(long a0, long a1, long a2, long a3, long a4, long a5) {
 
   child->time_slice = DEFAULT_TIME_SLICE;
 
-  // Populate fd table
-  for (size_t i = 0; i <= MAX_FDS; ++i) {
-    child->fd_table[i] = parent->fd_table[i];
+  if (fd_table_copy(child, parent) < 0) {
+    printk("sys_fork: Failed to copy fd table\n");
+    destroy_task(child);
+    return -1;
   }
 
   add_child(parent, child);

@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 
+#include "fs/file.h"
 #include "kernel/initramfs.h"
 #include "kernel/irq.h"
 #include "kernel/irq_frame.h"
@@ -72,6 +73,7 @@ void destroy_task(struct task* task) {
   if (task->mode == TASK_MODE_USER && task->ttbr0) {
     free_user_pgd(task->ttbr0);
     task->ttbr0 = 0;
+    fd_table_close_all(task);
   }
 
   if (task->stack) {
