@@ -24,5 +24,7 @@ long wait(int* status);
 long waitpid(int pid, int* status);
 long open(const char* user_path_addr, int flags, int mode);
 long close(int fd);
+long dup(int old_fd);
+long dup2(int old_fd, int new_fd);
 
 #endif
