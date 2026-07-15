@@ -1,11 +1,14 @@
 #include "drivers/uart.h"
+#include "fs/file.h"
+#include "kernel/scheduler/scheduler.h"
 #include "kernel/user_access.h"
 #include "syscall_handlers.h"
 
-long sys_write(long file_descriptor, long buffer, long length, long a3, long a4,
-               long a5) {
-  // Only stdout supported
-  if (file_descriptor != 1) return -1;
+long sys_write(long fd, long buffer, long length, long a3, long a4, long a5) {
+  struct file* file;
+  if (fd < 0 || fd >= MAX_FDS) return -1;
+  file = current_task->fd_table[fd];
+  if (!file) return -1;
 
   if (length < 0) return -1;
   if (length == 0) return 0;
@@ -25,7 +28,7 @@ long sys_write(long file_descriptor, long buffer, long length, long a3, long a4,
       return -1;
     }
 
-    long out = uart_write(kbuf, chunk);
+    long out = file->ops->write(file, kbuf, chunk);
     if (out < 0) {
       return (written > 0) ? written : -1;
     }
