@@ -8,6 +8,8 @@
 #define SYS_READ 5
 #define SYS_WAIT 6
 #define SYS_WAITPID 7
+#define SYS_OPEN 8
+#define SYS_CLOSE 9
 
 long syscall(long nr, long a0, long a1, long a2, long a3, long a4, long a5);
 
@@ -18,5 +20,7 @@ long fork(void);
 long read(int fd, void* buf, long len);
 long wait(int* status);
 long waitpid(int pid, int* status);
+long open(const char* user_path_addr, int flags, int mode);
+long close(int fd);
 
 #endif

@@ -17,9 +17,11 @@ LDFLAGS = -T user_linker.ld
 
 # Sources & derived
 LIBC_SRC = \
+	libc/close.c \
 	libc/execve.c \
 	libc/exit.c \
 	libc/fork.c \
+	libc/open.c \
 	libc/read.c \
 	libc/syscall.c \
 	libc/string.c \
