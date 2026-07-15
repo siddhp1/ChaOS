@@ -13,7 +13,8 @@ static syscall_fn_t syscall_table[SYS_MAX] = {
     [SYS_EXECVE] = sys_execve,   [SYS_FORK] = sys_fork,
     [SYS_READ] = sys_read,       [SYS_WAIT] = sys_wait,
     [SYS_WAITPID] = sys_waitpid, [SYS_OPEN] = sys_open,
-    [SYS_CLOSE] = sys_close};
+    [SYS_CLOSE] = sys_close,     [SYS_DUP] = sys_dup,
+    [SYS_DUP2] = sys_dup2};
 
 long syscall_dispatch(long nr, long a0, long a1, long a2, long a3, long a4,
                       long a5) {

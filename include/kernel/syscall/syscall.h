@@ -13,8 +13,10 @@
 #define SYS_WAITPID 7
 #define SYS_OPEN 8
 #define SYS_CLOSE 9
+#define SYS_DUP 10
+#define SYS_DUP2 11
 
-#define SYS_MAX 10
+#define SYS_MAX 12
 
 typedef long (*syscall_fn_t)(long, long, long, long, long, long);
 

@@ -40,6 +40,8 @@ SRC = \
 	kernel/string.c \
 	kernel/syscall/syscall.c \
 	kernel/syscall/sys_close.c \
+	kernel/syscall/sys_dup.c \
+	kernel/syscall/sys_dup2.c \
 	kernel/syscall/sys_execve.c \
 	kernel/syscall/sys_exit.c \
 	kernel/syscall/sys_fork.c \
