@@ -32,6 +32,8 @@ SRC = \
 	arch/arm64/platform/$(PLATFORM)/drivers/irq_controller.c \
 	arch/arm64/platform/$(PLATFORM)/drivers/timer.c \
 	arch/arm64/platform/$(PLATFORM)/drivers/uart.c \
+	fs/console.c \
+	fs/file.c \
 	kernel/initramfs.c \
 	kernel/kthread.c \
 	kernel/main.c \
