@@ -32,6 +32,8 @@ SRC = \
 	arch/arm64/platform/$(PLATFORM)/drivers/irq_controller.c \
 	arch/arm64/platform/$(PLATFORM)/drivers/timer.c \
 	arch/arm64/platform/$(PLATFORM)/drivers/uart.c \
+	fs/console.c \
+	fs/file.c \
 	kernel/initramfs.c \
 	kernel/kthread.c \
 	kernel/main.c \
@@ -43,9 +45,13 @@ SRC = \
 	kernel/scheduler/sleep.c \
 	kernel/string.c \
 	kernel/syscall/syscall.c \
+	kernel/syscall/sys_close.c \
+	kernel/syscall/sys_dup.c \
+	kernel/syscall/sys_dup2.c \
 	kernel/syscall/sys_execve.c \
 	kernel/syscall/sys_exit.c \
 	kernel/syscall/sys_fork.c \
+	kernel/syscall/sys_open.c \
 	kernel/syscall/sys_read.c \
 	kernel/syscall/sys_wait.c \
 	kernel/syscall/sys_waitpid.c \
