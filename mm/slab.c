@@ -13,8 +13,8 @@
 #define MAGIC 0x12345678UL
 
 // TODO: Add more object sizes here
-// Currently, we only need 32 for initramfs_file and 512 for task
-static const uint16_t obj_sizes[] = {32, 128, 512};
+// Currently, we only need 32 for initramfs_file, 64 for file, and 512 for task
+static const uint16_t obj_sizes[] = {32, 64, 128, 512};
 
 struct slab_obj {
   struct slab_obj* next;

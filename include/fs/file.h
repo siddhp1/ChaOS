@@ -4,13 +4,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "fs/vfs.h"
+
 #define MAX_FDS 32
 
-// Forward declaration
+// Forward declarations
 struct task;
 struct file;
 
 struct file_ops {
+  int (*open)(struct inode* inode, struct file* file);
   long (*read)(struct file* file, void* buf, size_t len);
   long (*write)(struct file* file, const void* buf, size_t len);
   int (*release)(struct file* file);
@@ -20,6 +23,7 @@ struct file {
   uint32_t refcount;
   uint32_t flags;
   size_t position;
+  struct path path;
   void* data;
   const struct file_ops* f_ops;
 };
