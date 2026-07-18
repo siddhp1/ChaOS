@@ -9,7 +9,7 @@ static const struct file_ops console_ops = {
 static struct file console_file = {.refcount = 1,
                                    .flags = 0,
                                    .position = 0,
-                                   .ops = &console_ops,
+                                   .f_ops = &console_ops,
                                    .data = NULL};
 
 // TODO: Consider removing

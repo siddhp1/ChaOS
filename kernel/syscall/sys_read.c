@@ -16,7 +16,7 @@ long sys_read(long fd, long buf, long len, long a3, long a4, long a5) {
   struct file* file = fd_get(current_task, fd);
   if (!file) return -1;
 
-  if (!file->ops || !file->ops->write) return -1;
+  if (!file->f_ops || !file->f_ops->write) return -1;
 
   if (!user_range_ok((uintptr_t)buf, (uint64_t)len)) return -1;
 
@@ -32,7 +32,7 @@ long sys_read(long fd, long buf, long len, long a3, long a4, long a5) {
     long chunk =
         remaining > (long)sizeof(kbuf) ? (long)sizeof(kbuf) : remaining;
 
-    long result = file->ops->read(file, kbuf, chunk);
+    long result = file->f_ops->read(file, kbuf, chunk);
 
     if (result < 0) return read > 0 ? read : result;
     if (result == 0) break;

@@ -3,9 +3,9 @@
 #include "kernel/task.h"
 #include "mm/heap.h"
 
-struct file* file_alloc(const struct file_ops* ops, uint32_t flags,
+struct file* file_alloc(const struct file_ops* f_ops, uint32_t flags,
                         void* data) {
-  if (!ops) return NULL;
+  if (!f_ops) return NULL;
 
   struct file* file = (struct file*)kzalloc(sizeof(struct file));
   if (!file) return NULL;
@@ -14,7 +14,7 @@ struct file* file_alloc(const struct file_ops* ops, uint32_t flags,
   // Position zeroed
   file->flags = flags;
   file->data = data;
-  file->ops = ops;
+  file->f_ops = f_ops;
 
   return file;
 }
@@ -32,8 +32,8 @@ void file_unref(struct file* file) {
   if (file->refcount != 0) return;
 
   // Release underlying resource
-  if (file->ops && file->ops->release) {
-    file->ops->release(file);
+  if (file->f_ops && file->f_ops->release) {
+    file->f_ops->release(file);
   }
 
   // Free memory once refcount = 0

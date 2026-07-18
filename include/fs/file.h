@@ -21,10 +21,11 @@ struct file {
   uint32_t flags;
   size_t position;
   void* data;
-  const struct file_ops* ops;
+  const struct file_ops* f_ops;
 };
 
-struct file* file_alloc(const struct file_ops* ops, uint32_t flags, void* data);
+struct file* file_alloc(const struct file_ops* f_ops, uint32_t flags,
+                        void* data);
 void file_ref(struct file* file);
 void file_unref(struct file* file);
 
