@@ -1,12 +1,12 @@
 FROM debian:sid-slim
 
 # Temporary, until permanent switch to containerized builds
-ENV CROSS_COMPILE=aarch64-none-elf-
+ENV CROSS_COMPILE=aarch64-linux-gnu-
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  gcc-aarch64-none-elf \
-  binutils-aarch64-none-elf \
+  gcc-aarch64-linux-gnu \
+  binutils-aarch64-linux-gnu \
   build-essential \
   make \
   cpio \
