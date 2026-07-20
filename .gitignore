@@ -5,12 +5,12 @@ initramfs_root/
 *.bin
 *.img
 
-# Prerequisites
-*.d
-
 # Object files
 *.elf
 *.o
+
+# Prerequisites
+*.d
 
 # Raspberry Pi files
 !rpi/*
