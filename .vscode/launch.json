@@ -13,15 +13,22 @@
       "targetArchitecture": "arm64",
       "stopAtEntry": true,
       "externalConsole": false,
+      "preLaunchTask": "Debug Kernel Setup",
       "setupCommands": [
         {
-          "text": "set architecture aarch64"
+          "description": "Set AArch64 architecture",
+          "text": "set architecture aarch64",
+          "ignoreFailures": false
         },
         {
-          "text": "set pagination off"
+          "description": "Disable pagination",
+          "text": "set pagination off",
+          "ignoreFailures": false
         },
         {
-          "text": "set disassemble-next-line on"
+          "description": "Show next instruction",
+          "text": "set disassemble-next-line on",
+          "ignoreFailures": false
         }
       ]
     },
