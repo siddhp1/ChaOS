@@ -1,0 +1,17 @@
+# Build intermediates
+initramfs_root/
+
+# Executables
+*.bin
+*.img
+
+# Git
+.git
+.gitignore
+
+# Object files
+*.elf
+*.o
+
+# Prerequisites
+*.d
