@@ -15,19 +15,19 @@ static void irq_resched_handler(void* unused) { (void)unused; }
 
 void irq_ack(uint32_t irq) { irq_controller_eoi(irq); }
 
-void irq_disable(void) { asm volatile("msr daifset, #2" ::: "memory"); }
+void irq_disable(void) { __asm__ volatile("msr daifset, #2" ::: "memory"); }
 
-void irq_enable(void) { asm volatile("msr daifclr, #2" ::: "memory"); }
+void irq_enable(void) { __asm__ volatile("msr daifclr, #2" ::: "memory"); }
 
 uint64_t irq_save(void) {
   uint64_t daif;
-  asm volatile("mrs %0, daif" : "=r"(daif));
+  __asm__ volatile("mrs %0, daif" : "=r"(daif));
   irq_disable();
   return daif;
 }
 
 void irq_restore(uint64_t daif) {
-  asm volatile("msr daif, %0" : : "r"(daif) : "memory");
+  __asm__ volatile("msr daif, %0" : : "r"(daif) : "memory");
 }
 
 uint32_t irq_get_pending(void) {

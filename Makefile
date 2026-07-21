@@ -8,7 +8,7 @@ PLATFORM ?= qemu_virt
 # Flags
 LDFLAGS = -T arch/arm64/platform/$(PLATFORM)/kernel_linker.ld
 
-CFLAGS = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -mgeneral-regs-only
+CFLAGS = -std=c23 -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -mgeneral-regs-only
 
 CFLAGS += -Iinclude
 CFLAGS += -Iarch/arm64/include

@@ -37,10 +37,10 @@ static void kill_user_task(const char* reason, uint64_t pc, uint64_t far,
 void data_abort_handler(void) {
   uint64_t elr, esr, far, spsr;
 
-  asm volatile("mrs %0, ELR_EL1" : "=r"(elr));
-  asm volatile("mrs %0, ESR_EL1" : "=r"(esr));
-  asm volatile("mrs %0, FAR_EL1" : "=r"(far));
-  asm volatile("mrs %0, SPSR_EL1" : "=r"(spsr));
+  __asm__ volatile("mrs %0, ELR_EL1" : "=r"(elr));
+  __asm__ volatile("mrs %0, ESR_EL1" : "=r"(esr));
+  __asm__ volatile("mrs %0, FAR_EL1" : "=r"(far));
+  __asm__ volatile("mrs %0, SPSR_EL1" : "=r"(spsr));
 
   if (from_el0(spsr)) {
     kill_user_task(reason_from_esr(esr), elr, far, access_type_from_esr(esr));
@@ -55,10 +55,10 @@ void data_abort_handler(void) {
 void prefetch_abort_handler(void) {
   uint64_t elr, esr, far, spsr;
 
-  asm volatile("mrs %0, ELR_EL1" : "=r"(elr));
-  asm volatile("mrs %0, ESR_EL1" : "=r"(esr));
-  asm volatile("mrs %0, FAR_EL1" : "=r"(far));
-  asm volatile("mrs %0, SPSR_EL1" : "=r"(spsr));
+  __asm__ volatile("mrs %0, ELR_EL1" : "=r"(elr));
+  __asm__ volatile("mrs %0, ESR_EL1" : "=r"(esr));
+  __asm__ volatile("mrs %0, FAR_EL1" : "=r"(far));
+  __asm__ volatile("mrs %0, SPSR_EL1" : "=r"(spsr));
 
   if (from_el0(spsr)) {
     kill_user_task(reason_from_esr(esr), elr, far, "exec");

@@ -3,6 +3,6 @@
 extern void vectors(void);
 
 void exception_init(void) {
-  asm volatile("msr VBAR_EL1, %0" ::"r"(vectors));
-  asm volatile("isb");
+  __asm__ volatile("msr VBAR_EL1, %0" ::"r"(vectors));
+  __asm__ volatile("isb");
 }

@@ -41,12 +41,12 @@ void irq_controller_init(void) {
 
   ENABLE_IRQ_BANK2 = (IRQ_PENDING_BANK2_UART0);
 
-  asm volatile("dsb sy" ::: "memory");
-  asm volatile("isb" ::: "memory");
+  __asm__ volatile("dsb sy" ::: "memory");
+  __asm__ volatile("isb" ::: "memory");
 }
 
 void irq_controller_send_sgi(uint64_t sgi_id) {
-  asm volatile("dsb sy" ::: "memory");
+  __asm__ volatile("dsb sy" ::: "memory");
   CORE0_MBOX0_SET = (1U << 0);
 }
 

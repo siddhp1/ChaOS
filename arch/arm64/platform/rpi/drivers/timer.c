@@ -12,7 +12,7 @@ static uint64_t timer_interval_ticks;
 void timer_init(void) {
   // Read counter frequency register
   uint64_t cntfrq;
-  asm volatile("mrs %0, CNTFRQ_EL0" : "=r"(cntfrq));
+  __asm__ volatile("mrs %0, CNTFRQ_EL0" : "=r"(cntfrq));
 
   // Round up to prevent 0 tick interval
   timer_interval_ticks = (cntfrq + TIMER_HZ - 1) / TIMER_HZ;
@@ -21,20 +21,20 @@ void timer_init(void) {
   }
 
   // Program timer to fire timer_interval_ticks from now
-  asm volatile("msr CNTP_TVAL_EL0, %0"
+  __asm__ volatile("msr CNTP_TVAL_EL0, %0"
                :
                : "r"(timer_interval_ticks)
                : "memory");
 
   // Enable timer
-  asm volatile("msr CNTP_CTL_EL0, %0" : : "r"((uint64_t)1) : "memory");
+  __asm__ volatile("msr CNTP_CTL_EL0, %0" : : "r"((uint64_t)1) : "memory");
 
   register_irq(TIMER_IRQ, timer_interrupt);
 }
 
 void timer_interrupt(void* unused) {
   // Re-arm timer for the next tick
-  asm volatile("msr CNTP_TVAL_EL0, %0"
+  __asm__ volatile("msr CNTP_TVAL_EL0, %0"
                :
                : "r"(timer_interval_ticks)
                : "memory");
