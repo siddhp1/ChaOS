@@ -58,7 +58,7 @@ static struct wait_queue tx_wait_queue;
 
 static void delay(int count) {
   while (count--) {
-    asm volatile("nop");
+    __asm__ volatile("nop");
   }
 }
 

@@ -1,0 +1,5 @@
+// Ensure ms-vscode.cpptools is installed and enabled
+{
+  "C_Cpp.formatting": "clangFormat",
+  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+}
