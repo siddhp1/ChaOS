@@ -96,17 +96,17 @@ static void gicd_config(uint32_t int_id, uint8_t prio, bool group1) {
 void irq_controller_init(void) {
   // Enable the system register interface to the GIC CPU interface for EL1
   uint64_t sre;
-  asm volatile("mrs %0, ICC_SRE_EL1" : "=r"(sre));
+  __asm__ volatile("mrs %0, ICC_SRE_EL1" : "=r"(sre));
   sre |= 1u;
-  asm volatile("msr ICC_SRE_EL1, %0" : : "r"(sre) : "memory");
-  asm volatile("isb" ::: "memory");
+  __asm__ volatile("msr ICC_SRE_EL1, %0" : : "r"(sre) : "memory");
+  __asm__ volatile("isb" ::: "memory");
 
   // Allow all interrupt priorities through
-  asm volatile("msr ICC_PMR_EL1, %0" : : "r"((uint64_t)0xff) : "memory");
+  __asm__ volatile("msr ICC_PMR_EL1, %0" : : "r"((uint64_t)0xff) : "memory");
 
   // Enable group 1 interrupts
-  asm volatile("msr ICC_IGRPEN1_EL1, %0" : : "r"((uint64_t)1) : "memory");
-  asm volatile("isb" ::: "memory");
+  __asm__ volatile("msr ICC_IGRPEN1_EL1, %0" : : "r"((uint64_t)1) : "memory");
+  __asm__ volatile("isb" ::: "memory");
 
   // Enable distributor for group 0 and group 1
   *(volatile uint32_t*)(GICD_BASE + GICD_CTLR) = 0x3;
@@ -123,24 +123,24 @@ void irq_controller_init(void) {
   gicr_config(IRQ_RESCHED_SGI, 0x80, true);
   gicd_config(IRQ_UART, 0x80, true);
 
-  asm volatile("dsb sy" ::: "memory");
-  asm volatile("isb" ::: "memory");
+  __asm__ volatile("dsb sy" ::: "memory");
+  __asm__ volatile("isb" ::: "memory");
 }
 
 void irq_controller_send_sgi(uint64_t sgi_id) {
   uint8_t target = 1u;  // Target Core 0
   uint64_t val = (target & 0xffffu) | ((sgi_id & 0xf) << 24);
-  asm volatile("dsb sy" ::: "memory");
-  asm volatile("msr ICC_SGI1R_EL1, %0" : : "r"(val) : "memory");
-  asm volatile("isb" ::: "memory");
+  __asm__ volatile("dsb sy" ::: "memory");
+  __asm__ volatile("msr ICC_SGI1R_EL1, %0" : : "r"(val) : "memory");
+  __asm__ volatile("isb" ::: "memory");
 }
 
 uint32_t irq_controller_ack(void) {
   uint64_t iar;
-  asm volatile("mrs %0, ICC_IAR1_EL1" : "=r"(iar));
+  __asm__ volatile("mrs %0, ICC_IAR1_EL1" : "=r"(iar));
   return (uint32_t)iar;
 }
 
 void irq_controller_eoi(uint32_t irq) {
-  asm volatile("msr ICC_EOIR1_EL1, %0" : : "r"((uint64_t)irq) : "memory");
+  __asm__ volatile("msr ICC_EOIR1_EL1, %0" : : "r"((uint64_t)irq) : "memory");
 }

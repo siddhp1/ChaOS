@@ -37,24 +37,24 @@
       TCR_IRGN1 | TCR_ORGN1 | TCR_SH1
 
 void enable_mmu(uintptr_t ttbr0, uintptr_t ttbr1) {
-  asm volatile("msr MAIR_EL1, %0" ::"r"(MAIR_VALUE));
-  asm volatile("msr TCR_EL1, %0" ::"r"(TCR_VALUE));
-  asm volatile("msr TTBR0_EL1, %0" ::"r"(ttbr0));
-  asm volatile("msr TTBR1_EL1, %0" ::"r"(ttbr1));
+  __asm__ volatile("msr MAIR_EL1, %0" ::"r"(MAIR_VALUE));
+  __asm__ volatile("msr TCR_EL1, %0" ::"r"(TCR_VALUE));
+  __asm__ volatile("msr TTBR0_EL1, %0" ::"r"(ttbr0));
+  __asm__ volatile("msr TTBR1_EL1, %0" ::"r"(ttbr1));
 
-  asm volatile("dsb ishst" ::: "memory");
-  asm volatile("isb");
+  __asm__ volatile("dsb ishst" ::: "memory");
+  __asm__ volatile("isb");
 
   tlb_flush_all();
 
   uint64_t sctlr;
-  asm volatile("mrs %0, SCTLR_EL1" : "=r"(sctlr));
+  __asm__ volatile("mrs %0, SCTLR_EL1" : "=r"(sctlr));
   // 0: MMU enable; 2: data cache enable; 12: instruction cache enable
   sctlr |= (1 << 0) | (1 << 2) | (1 << 12);
-  asm volatile("msr SCTLR_EL1, %0" ::"r"(sctlr));
+  __asm__ volatile("msr SCTLR_EL1, %0" ::"r"(sctlr));
 
-  asm volatile("dsb ishst" ::: "memory");
-  asm volatile("isb");
+  __asm__ volatile("dsb ishst" ::: "memory");
+  __asm__ volatile("isb");
 }
 
 void mmu_init(void) {
@@ -64,6 +64,6 @@ void mmu_init(void) {
 }
 
 void set_ttbr0(uintptr_t phys) {
-  asm volatile("msr TTBR0_EL1, %0" ::"r"(phys) : "memory");
+  __asm__ volatile("msr TTBR0_EL1, %0" ::"r"(phys) : "memory");
   tlb_flush_all();
 }

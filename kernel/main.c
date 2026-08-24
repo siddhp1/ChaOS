@@ -114,6 +114,6 @@ void kernel_entry(void) {
   yield();
 
   while (1) {
-    asm volatile("WFI");
+    __asm__ volatile("WFI");
   }
 }
