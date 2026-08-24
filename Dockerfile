@@ -1,7 +1,5 @@
 FROM debian:sid-slim
 
-# Temporary, until permanent switch to containerized builds
-ENV CROSS_COMPILE=aarch64-linux-gnu-
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

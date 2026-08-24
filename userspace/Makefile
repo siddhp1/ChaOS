@@ -1,17 +1,10 @@
 # Toolchain & configuration
-TOOLCHAIN ?= aarch64-elf
-include ../toolchains/$(TOOLCHAIN).mk
-
-DEBUG ?= true
+include ../config.mk
 
 # Flags
-CFLAGS  = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -mgeneral-regs-only
+CFLAGS = $(COMMON_CFLAGS)
 
 CFLAGS += -I.
-
-ifeq ($(DEBUG),true)
-CFLAGS += -g -O0 -fno-omit-frame-pointer
-endif
 
 LDFLAGS = -T user_linker.ld
 

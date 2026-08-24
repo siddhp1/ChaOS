@@ -1,22 +1,16 @@
 # Toolchain & configuration
-TOOLCHAIN ?= aarch64-elf
-include toolchains/$(TOOLCHAIN).mk
+include config.mk
 
-DEBUG ?= true
 PLATFORM ?= qemu_virt
 
 # Flags
 LDFLAGS = -T arch/arm64/platform/$(PLATFORM)/kernel_linker.ld
 
-CFLAGS = -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -mgeneral-regs-only
+CFLAGS = $(COMMON_CFLAGS)
 
 CFLAGS += -Iinclude
 CFLAGS += -Iarch/arm64/include
 CFLAGS += -Iarch/arm64/platform/$(PLATFORM)/include
-
-ifeq ($(DEBUG),true)
-CFLAGS += -g -O0 -fno-omit-frame-pointer
-endif
 
 # Sources & derived
 SRC = \
@@ -81,7 +75,7 @@ image: kernel8.img
 # Userspace & initramfs
 userspace/init.bin userspace/hello.bin userspace/sh.bin : userspace_build
 userspace_build:
-	$(MAKE) -C userspace TOOLCHAIN=$(TOOLCHAIN)
+	$(MAKE) -C userspace
 
 # Archive initramfs as cpio newc image (binary blob)
 $(INITRAMFS_IMG): userspace/init.bin userspace/hello.bin userspace/sh.bin
