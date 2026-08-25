@@ -1,0 +1,69 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Debug",
+      "type": "shell",
+      "command": "docker compose build && docker compose run --rm dev make clean && docker compose run --rm dev make DEBUG=true PLATFORM=qemu_virt",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Target",
+      "type": "shell",
+      "command": "docker compose build && docker compose run --rm dev make clean && docker compose run --rm dev make kernel8.img DEBUG=false PLATFORM=rpi",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Clean",
+      "type": "shell",
+      "command": "docker compose run --rm dev make clean",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      }
+    },
+    {
+      "label": "Start QEMU Debug Server",
+      "type": "shell",
+      "command": "echo 'Starting QEMU debug server...' && qemu-system-aarch64 -M virt,gic-version=3 -cpu cortex-a53 -m 512M -kernel \"${workspaceFolder}/kernel.elf\" -nographic -S -s",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "qemu",
+        "pattern": {
+          "regexp": "^(.*)$",
+          "file": 1,
+          "location": 1,
+          "message": 1
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^Starting QEMU debug server\\.\\.\\.$",
+          "endsPattern": "^Starting QEMU debug server\\.\\.\\.$"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false,
+        "clear": true
+      }
+    },
+    {
+      "label": "Debug Kernel Setup",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Build Debug",
+        "Start QEMU Debug Server"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

@@ -15,25 +15,24 @@ Includes preemptive scheduler, memory management, a userspace with syscalls, and
 ### Prerequisites
 
 - QEMU (AArch64): `qemu-system-aarch64`
-- A cross compiler:
-  - Bare-metal (default): `aarch64-elf-*`
-  - Linux cross: `aarch64-linux-gnu-*`
+- GNU AArch64 cross compiler: `aarch64-linux-gnu-*`
 
 ### Build
 
 #### Command
 
 ```sh
-make TOOLCHAIN=? PLATFORM=? DEBUG=?
+make PLATFORM=? DEBUG=?
 ```
 
 #### Arguments
 
 | Variable | Default | Supported values | Meaning |
 | --- | --- | --- | --- |
-| `TOOLCHAIN` | `aarch64-elf` | `aarch64-elf`, `aarch64-linux-gnu` | Selects the cross-compiler toolchain |
 | `PLATFORM` | `qemu_virt` | `qemu_virt`, `rpi` | Builds for a specific platform |
 | `DEBUG` | `true` | `true`, `false` | Adds debug compiler flags |
+
+The compiler prefix defaults to `aarch64-linux-gnu-`. Set `CROSS_COMPILE` only when the same compiler is installed under a different prefix.
 
 For QEMU, the recommended arguments are `PLATFORM=qemu_virt` and `DEBUG=true`.  
 For Raspberry Pi, the recommended arguments are `PLATFORM=rpi` and `DEBUG=false`.
