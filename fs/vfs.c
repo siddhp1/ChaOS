@@ -1,6 +1,10 @@
 #include "fs/vfs.h"
 
+#include "fs/rootfs.h"
+#include "kernel/errno.h"
 #include "mm/heap.h"
+
+static struct mount* vfs_root_mount;
 
 struct inode* inode_alloc(void) {
   struct inode* inode = (struct inode*)kzalloc(sizeof(struct inode));
@@ -72,4 +76,44 @@ void superblock_unref(struct superblock* sb) {
 
   dentry_unref(sb->root);
   kfree(sb);
+}
+
+struct mount* mount_alloc(void) {
+  struct mount* mount = (struct mount*)kzalloc(sizeof(struct mount));
+  if (!mount) return NULL;
+
+  mount->refcount = 1;
+  return mount;
+}
+
+void mount_ref(struct mount* mount) {
+  if (!mount) return;
+
+  mount->refcount++;
+}
+
+void mount_unref(struct mount* mount) {
+  if (!mount) return;
+
+  mount->refcount--;
+  if (mount->refcount != 0) return;
+
+  superblock_unref(mount->sb);
+  kfree(mount);
+}
+
+int vfs_init(void) {
+  if (vfs_root_mount) return 0;
+
+  struct mount* mount = mount_alloc();
+  if (!mount) return -ENOMEM;
+
+  int err = rootfs_type.mount(mount);
+  if (err < 0) {
+    mount_unref(mount);
+    return err;
+  }
+
+  vfs_root_mount = mount;
+  return 0;
 }
