@@ -70,10 +70,13 @@ void destroy_task(struct task* task) {
     }
   }
 
-  if (task->mode == TASK_MODE_USER && task->ttbr0) {
-    free_user_pgd(task->ttbr0);
-    task->ttbr0 = 0;
+  if (task->mode == TASK_MODE_USER) {
     fd_table_close_all(task);
+
+    if (task->ttbr0) {
+      free_user_pgd(task->ttbr0);
+      task->ttbr0 = 0;
+    }
   }
 
   if (task->stack) {
