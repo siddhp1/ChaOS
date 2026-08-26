@@ -23,7 +23,7 @@ long console_read(struct file* file, void* buf, size_t len) {
   (void)file;
 
   char* kbuf = (char*)buf;
-  long count = 0;
+  size_t count = 0;
 
   if (!buf) return -1;
   if (len == 0) return 0;
@@ -52,13 +52,13 @@ long console_read(struct file* file, void* buf, size_t len) {
     uart_write(&c, 1);
   }
 
-  return count;
+  return (long)count;
 }
 
 long console_write(struct file* file, const void* buf, size_t len) {
   (void)file;
 
-  if (!buf || len < 0) return -1;
+  if (!buf) return -1;
   if (len == 0) return 0;
 
   return uart_write((const char*)buf, len);
