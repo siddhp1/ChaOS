@@ -1,6 +1,22 @@
 #include <stddef.h>
 
+#include "fs/file.h"
 #include "fs/vfs.h"
+
+// Forward declaration
+static int rootfs_lookup(struct inode* dir, const char* name,
+                         struct dentry** out);
+static long rootfs_read(struct file* file, void* buf, size_t count);
+
+static const struct inode_ops rootfs_dir_inode_ops = {
+    .lookup = rootfs_lookup,
+};
+
+static const struct file_ops rootfs_file_ops = {
+    .read = rootfs_read,
+    .write = NULL,
+    .release = NULL,
+};
 
 // Rootfs data
 static const char hello_data[] = "hello from vfs\n";
@@ -52,3 +68,18 @@ static struct rootfs_node root_node = {
     .children = root_children,
     .child_count = sizeof(root_children) / sizeof(root_children[0]),
 };
+
+static int rootfs_lookup(struct inode* dir, const char* name,
+                         struct dentry** out) {
+  (void)dir;
+  (void)name;
+  (void)out;
+  return -1;
+}
+
+static long rootfs_read(struct file* file, void* buf, size_t count) {
+  (void)file;
+  (void)buf;
+  (void)count;
+  return -1;
+}
