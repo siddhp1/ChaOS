@@ -14,20 +14,6 @@
 
 #define EXEC_PATH_MAX 128
 
-static long copy_user_cstr(char* dst, const char* user_src, size_t max_len) {
-  if (!dst || !user_src || max_len == 0) return -1;
-
-  for (size_t i = 0; i < max_len; i++) {
-    char c = 0;
-    if (copy_from_user(&c, user_src + i, 1) < 0) return -1;
-    dst[i] = c;
-    if (c == '\0') return (long)i;
-  }
-
-  dst[max_len - 1] = '\0';
-  return -1;  // No terminator in bound
-}
-
 long sys_execve(long pathname, long a1, long a2, long a3, long a4, long a5) {
   (void)a1;
   (void)a2;
