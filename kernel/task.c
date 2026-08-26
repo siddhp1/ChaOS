@@ -1,6 +1,7 @@
 #include "kernel/task.h"
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "fs/file.h"
 #include "kernel/initramfs.h"
@@ -71,6 +72,7 @@ void destroy_task(struct task* task) {
   }
 
   if (task->mode == TASK_MODE_USER) {
+    // Redundant, fds are closed at task exit
     fd_table_close_all(task);
 
     if (task->ttbr0) {
@@ -92,9 +94,9 @@ void destroy_task(struct task* task) {
 }
 
 void task_exit(struct task* task, int32_t exit_status) {
-  if (!task) {
-    return;
-  }
+  if (!task) return;
+
+  fd_table_close_all(task);
 
   task->exit_status = exit_status;
 
