@@ -11,11 +11,10 @@ long sys_open(long user_path_addr, long flags, long mode, long a3, long a4,
   (void)a4;
   (void)a5;
 
-  char path[128];
-
   if (user_path_addr == 0) return -1;
 
-  if (copy_from_user(path, (const char*)user_path_addr, sizeof(path)) < 0) {
+  char path[128];
+  if (copy_user_cstr(path, (const char*)user_path_addr, sizeof(path)) < 0) {
     return -1;
   }
 
