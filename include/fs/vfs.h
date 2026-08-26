@@ -73,4 +73,10 @@ struct superblock* superblock_alloc(void);
 void superblock_ref(struct superblock* sb);
 void superblock_unref(struct superblock* sb);
 
+struct mount* mount_alloc(void);
+void mount_ref(struct mount* mount);
+void mount_unref(struct mount* mount);
+
+int vfs_init(void);
+
 #endif

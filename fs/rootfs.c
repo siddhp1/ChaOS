@@ -1,6 +1,7 @@
 #include <stddef.h>
 
 #include "fs/file.h"
+#include "fs/rootfs.h"
 #include "fs/vfs.h"
 #include "kernel/errno.h"
 #include "kernel/string.h"
@@ -9,7 +10,7 @@
 static int rootfs_lookup(struct inode* dir, const char* name,
                          struct dentry** out);
 static long rootfs_read(struct file* file, void* buf, size_t count);
-static __attribute__((unused)) int rootfs_mount(struct mount* mount);
+static int rootfs_mount(struct mount* mount);
 
 static const struct inode_ops rootfs_dir_inode_ops = {
     .lookup = rootfs_lookup,
@@ -169,7 +170,7 @@ static long rootfs_read(struct file* file, void* buf, size_t count) {
   return (long)count;
 }
 
-static __attribute__((unused)) int rootfs_mount(struct mount* mount) {
+static int rootfs_mount(struct mount* mount) {
   if (!mount) return -EINVAL;
 
   struct superblock* sb = superblock_alloc();
@@ -182,9 +183,15 @@ static __attribute__((unused)) int rootfs_mount(struct mount* mount) {
   }
 
   root->parent = root;
+  sb->type = &rootfs_type;
   sb->root = root;
   mount->sb = sb;
   mount->root = root;
 
   return 0;
 }
+
+struct fs_type rootfs_type = {
+    .name = "rootfs",
+    .mount = rootfs_mount,
+};
