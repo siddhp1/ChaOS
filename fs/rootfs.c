@@ -2,6 +2,7 @@
 
 #include "fs/file.h"
 #include "fs/vfs.h"
+#include "kernel/string.h"
 
 // Forward declaration
 static int rootfs_lookup(struct inode* dir, const char* name,
@@ -68,6 +69,51 @@ static struct rootfs_node root_node = {
     .children = root_children,
     .child_count = sizeof(root_children) / sizeof(root_children[0]),
 };
+
+static struct inode* rootfs_make_inode(struct rootfs_node* node) {
+  if (!node) return NULL;
+
+  struct inode* inode = inode_alloc();
+  if (!inode) return NULL;
+
+  inode->type = node->type;
+  inode->size = node->size;
+  inode->data = node;
+
+  if (node->type == INODE_DIR) {
+    inode->i_ops = &rootfs_dir_inode_ops;
+    inode->f_ops = NULL;
+  } else if (node->type == INODE_REG) {
+    inode->i_ops = NULL;
+    inode->f_ops = &rootfs_file_ops;
+  } else {
+    inode_unref(inode);
+    return NULL;
+  }
+
+  return inode;
+}
+
+static struct dentry* rootfs_make_dentry(const char* name,
+                                         struct dentry* parent,
+                                         struct rootfs_node* node) {
+  if (!name || !node) return NULL;
+
+  struct dentry* dentry = dentry_alloc();
+  if (!dentry) return NULL;
+
+  strncpy(dentry->name, name, VFS_NAME_MAX);
+  dentry->name[VFS_NAME_MAX] = '\0';
+  dentry->parent = parent;
+  dentry->inode = rootfs_make_inode(node);
+
+  if (!dentry->inode) {
+    dentry_unref(dentry);
+    return NULL;
+  }
+
+  return dentry;
+}
 
 static int rootfs_lookup(struct inode* dir, const char* name,
                          struct dentry** out) {
