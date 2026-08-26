@@ -48,3 +48,28 @@ void dentry_unref(struct dentry* dentry) {
   inode_unref(dentry->inode);
   kfree(dentry);
 }
+
+struct superblock* superblock_alloc(void) {
+  struct superblock* sb =
+      (struct superblock*)kzalloc(sizeof(struct superblock));
+  if (!sb) return NULL;
+
+  sb->refcount = 1;
+  return sb;
+}
+
+void superblock_ref(struct superblock* sb) {
+  if (!sb) return;
+
+  sb->refcount++;
+}
+
+void superblock_unref(struct superblock* sb) {
+  if (!sb) return;
+
+  sb->refcount--;
+  if (sb->refcount != 0) return;
+
+  dentry_unref(sb->root);
+  kfree(sb);
+}
