@@ -1,5 +1,7 @@
 #include "fs/console.h"
 
+#include <stddef.h>
+
 #include "drivers/uart.h"
 #include "fs/file.h"
 
@@ -23,7 +25,7 @@ long console_read(struct file* file, void* buf, size_t len) {
   char* kbuf = (char*)buf;
   long count = 0;
 
-  if (!buf || len < 0) return -1;
+  if (!buf) return -1;
   if (len == 0) return 0;
 
   while (count < len) {
