@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "fs/vfs.h"
+
 #define MAX_FDS 32
 
 // Forward declaration
@@ -20,6 +22,7 @@ struct file {
   uint32_t refcount;
   uint32_t flags;
   size_t position;
+  struct path path;
   void* data;
   const struct file_ops* ops;
 };
