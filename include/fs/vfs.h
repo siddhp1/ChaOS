@@ -38,6 +38,7 @@ struct dentry {
 };
 
 struct superblock {
+  uint32_t refcount;
   struct fs_type* type;
   struct dentry* root;
   void* data;
@@ -67,5 +68,9 @@ void inode_unref(struct inode* inode);
 struct dentry* dentry_alloc(void);
 void dentry_ref(struct dentry* dentry);
 void dentry_unref(struct dentry* dentry);
+
+struct superblock* superblock_alloc(void);
+void superblock_ref(struct superblock* sb);
+void superblock_unref(struct superblock* sb);
 
 #endif
