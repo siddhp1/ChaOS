@@ -6,6 +6,12 @@
 
 #define VFS_NAME_MAX 255
 
+// Forward declaration
+struct dentry;
+struct file_ops;
+struct fs_type;
+struct inode;
+
 enum inode_type {
   INODE_REG,
   INODE_DIR,

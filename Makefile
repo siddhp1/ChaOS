@@ -28,6 +28,7 @@ SRC = \
 	arch/arm64/platform/$(PLATFORM)/drivers/uart.c \
 	fs/console.c \
 	fs/file.c \
+	fs/rootfs.c \
 	fs/vfs.c \
 	kernel/initramfs.c \
 	kernel/kthread.c \
