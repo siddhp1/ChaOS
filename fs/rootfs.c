@@ -107,7 +107,7 @@ static struct dentry* rootfs_make_dentry(const char* name,
 
   strncpy(dentry->name, name, VFS_NAME_MAX);
   dentry->name[VFS_NAME_MAX] = '\0';
-  dentry->parent = parent;
+  dentry_set_parent(dentry, parent);
   dentry->inode = rootfs_make_inode(node);
 
   if (!dentry->inode) {
@@ -182,7 +182,7 @@ static int rootfs_mount(struct mount* mount) {
     return -ENOMEM;
   }
 
-  root->parent = root;
+  dentry_set_parent(root, root);
   sb->type = &rootfs_type;
   sb->root = root;
   mount->sb = sb;
