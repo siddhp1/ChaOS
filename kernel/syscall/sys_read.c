@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "fs/file.h"
+#include "fs/vfs.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/user_access.h"
 
@@ -15,7 +16,7 @@ long sys_read(long fd, long buf, long len, long a3, long a4, long a5) {
   if (len == 0) return 0;
 
   struct file* file = fd_get(current_task, (int)fd);
-  if (!file || !file->ops || !file->ops->read) return -1;
+  if (!file) return -1;
 
   if (!user_range_ok((uintptr_t)buf, (uint64_t)len)) return -1;
 
@@ -24,7 +25,7 @@ long sys_read(long fd, long buf, long len, long a3, long a4, long a5) {
   char kbuf[128];
   size_t chunk = (uint64_t)len > sizeof(kbuf) ? sizeof(kbuf) : (size_t)len;
 
-  long result = file->ops->read(file, kbuf, chunk);
+  long result = vfs_read(file, kbuf, chunk);
   if (result < 0) return result;
   if ((size_t)result > chunk) return -1;
 

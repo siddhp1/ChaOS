@@ -1,5 +1,5 @@
-#include "drivers/uart.h"
 #include "fs/file.h"
+#include "fs/vfs.h"
 #include "kernel/scheduler/scheduler.h"
 #include "kernel/user_access.h"
 #include "syscall_handlers.h"
@@ -16,8 +16,6 @@ long sys_write(long fd, long buf, long len, long a3, long a4, long a5) {
 
   struct file* file = fd_get(current_task, fd);
   if (!file) return -1;
-
-  if (!file->ops || !file->ops->write) return -1;
 
   if (!user_range_ok((uintptr_t)buf, (uint64_t)len)) return -1;
 
@@ -37,7 +35,7 @@ long sys_write(long fd, long buf, long len, long a3, long a4, long a5) {
       return written > 0 ? written : -1;
     }
 
-    long result = file->ops->write(file, kbuf, chunk);
+    long result = vfs_write(file, kbuf, chunk);
 
     if (result < 0) return (written > 0) ? written : result;
     if (result == 0) break;
