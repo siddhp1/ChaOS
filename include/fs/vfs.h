@@ -68,6 +68,7 @@ void inode_unref(struct inode* inode);
 struct dentry* dentry_alloc(void);
 void dentry_ref(struct dentry* dentry);
 void dentry_unref(struct dentry* dentry);
+void dentry_set_parent(struct dentry* dentry, struct dentry* parent);
 
 struct superblock* superblock_alloc(void);
 void superblock_ref(struct superblock* sb);
@@ -78,5 +79,8 @@ void mount_ref(struct mount* mount);
 void mount_unref(struct mount* mount);
 
 int vfs_init(void);
+int vfs_lookup_path(const char* pathname, struct path* out);
+void path_ref(struct path* path);
+void path_unref(struct path* path);
 
 #endif
