@@ -67,10 +67,18 @@ INITRAMFS_ROOT := initramfs_root
 
 # Top-level targets
 .DEFAULT_GOAL := all
-.PHONY: all image clean userspace_build
+.PHONY: all image clean userspace_build docs clean-docs
 
 all: kernel.elf
 image: kernel8.img
+
+# Documentation
+docs:
+	mkdir -p docs/build
+	doxygen Doxyfile
+
+clean-docs:
+	rm -rf docs/build
 
 # Userspace & initramfs
 userspace/init.bin userspace/hello.bin userspace/sh.bin : userspace_build
