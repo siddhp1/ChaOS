@@ -8,7 +8,7 @@ Freestanding AArch64 (ARMv8) OS kernel for Raspberry Pi (Cortex-A53) with PL011 
 
 Includes preemptive scheduler, memory management, a userspace with syscalls, and initramfs loader.
 
-> More information in the [Wiki!](https://github.com/siddhp1/ChaOS/wiki)
+> More information in the [documentation!](https://siddhp1.github.io/ChaOS/)
 
 ## Setup
 
