@@ -1,0 +1,34 @@
+name: Build and release ChaOS
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Build Docker image
+        run: docker compose build
+
+      - name: Build kernel
+        run: docker compose run --rm -T dev make kernel8.img PLATFORM=rpi DEBUG=false
+
+      - name: Release to GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: chaos-${{ github.sha }}
+        run: |
+          short_sha="${GITHUB_SHA::7}"
+          gh release create "$RELEASE_TAG" kernel8.img rpi/* \
+            --target "$GITHUB_SHA" \
+            --title "ChaOS ($short_sha)" \
+            --generate-notes \
+            --latest
