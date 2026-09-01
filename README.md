@@ -8,34 +8,65 @@ Freestanding AArch64 (ARMv8) OS kernel for Raspberry Pi (Cortex-A53) with PL011 
 
 Includes preemptive scheduler, memory management, a userspace with syscalls, and initramfs loader.
 
-> More information in the [Wiki!](https://github.com/siddhp1/ChaOS/wiki)
+> More information in the [documentation!](https://siddhp1.github.io/ChaOS/)
 
 ## Setup
 
 ### Prerequisites
 
-- QEMU (AArch64): `qemu-system-aarch64`
-- GNU AArch64 cross compiler: `aarch64-linux-gnu-*`
+- [Docker](https://docs.docker.com/get-docker/) with Docker Compose v2
+- [QEMU](https://www.qemu.org/download/) (`qemu-system-aarch64`) to run the kernel locally
+- Optional: [Visual Studio Code](https://code.visualstudio.com/) with the
+  [C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
+  for the included tasks
+
+Build the development container:
+
+```sh
+docker compose build
+```
 
 ### Build
 
-#### Command
-
 ```sh
-make PLATFORM=? DEBUG=?
+# QEMU
+docker compose run --rm dev make PLATFORM=qemu_virt
+
+# Raspberry Pi
+docker compose run --rm dev make kernel8.img PLATFORM=rpi
 ```
 
-#### Arguments
+The Make variables are:
 
 | Variable | Default | Supported values | Meaning |
 | --- | --- | --- | --- |
 | `PLATFORM` | `qemu_virt` | `qemu_virt`, `rpi` | Builds for a specific platform |
 | `DEBUG` | `true` | `true`, `false` | Adds debug compiler flags |
 
-The compiler prefix defaults to `aarch64-linux-gnu-`. Set `CROSS_COMPILE` only when the same compiler is installed under a different prefix.
+Clean build output with:
 
-For QEMU, the recommended arguments are `PLATFORM=qemu_virt` and `DEBUG=true`.  
-For Raspberry Pi, the recommended arguments are `PLATFORM=rpi` and `DEBUG=false`.
+```sh
+docker compose run --rm dev make clean
+```
+
+### VS Code tasks
+
+- Build Debug
+- Build Target
+- Build Docs
+- Clean
+- Clean Docs
+- Debug Kernel (QEMU)
+
+### Documentation
+
+Build the documentation inside the container:
+
+```sh
+docker compose run --rm dev make docs
+```
+
+Output is written to `docs/build`.
 
 ## Usage
 
@@ -50,20 +81,26 @@ qemu-system-aarch64 \
   -nographic
 ```
 
-Add `-S -s` when running debug builds
+Use the **Debug Kernel (QEMU)** VS Code configuration to debug the kernel.
 
 ### Raspberry Pi
 
-- Mount the Raspberry Pi boot partition (FAT) and copy the firmware files in `rpi/` and `kernel8.img`
-- Connect a 3.3V USB-to-TTL serial adapter to the Pi UART (GPIO14 TXD0, GPIO15 RXD0, and GND)
+- Build `kernel8.img` with the Raspberry Pi command above or the **Build
+  Target** task
+- Mount the Raspberry Pi boot partition (FAT) and copy the firmware files in
+  `rpi/` and the generated `kernel8.img`
+- Connect a 3.3V USB-to-TTL serial adapter to the Pi UART (GPIO14 TXD0, GPIO15
+  RXD0, and GND)
 - Use a serial console with baud rate of 115200 to view UART I/O
 
 #### Minicom
+
 ```sh
 minicom -D /dev/ttyUSB0 -b 115200
 ```
 
 #### Screen
+
 ```sh
 screen /dev/ttyUSB0 115200
 ```
