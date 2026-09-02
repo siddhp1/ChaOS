@@ -7,6 +7,7 @@
 #define VFS_NAME_MAX 255
 
 // Forward declaration
+struct file;
 struct dentry;
 struct file_ops;
 struct fs_type;
@@ -80,6 +81,8 @@ void mount_unref(struct mount* mount);
 
 int vfs_init(void);
 int vfs_lookup_path(const char* pathname, struct path* out);
+long vfs_read(struct file* file, void* buf, size_t count);
+long vfs_write(struct file* file, const void* buf, size_t count);
 void path_ref(struct path* path);
 void path_unref(struct path* path);
 
