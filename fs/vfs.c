@@ -1,5 +1,6 @@
 #include "fs/vfs.h"
 
+#include "fs/file.h"
 #include "fs/rootfs.h"
 #include "kernel/errno.h"
 #include "kernel/string.h"
@@ -230,4 +231,21 @@ int vfs_lookup_path(const char* pathname, struct path* out) {
 
   *out = current;
   return 0;
+}
+long vfs_read(struct file* file, void* buf, size_t count) {
+  if (!file) return -EBADF;
+  if (file->path.dentry && file->path.dentry->inode &&
+      file->path.dentry->inode->type == INODE_DIR)
+    return -EISDIR;
+  if (!file->ops || !file->ops->read) return -EBADF;
+  return file->ops->read(file, buf, count);
+}
+
+long vfs_write(struct file* file, const void* buf, size_t count) {
+  if (!file) return -EBADF;
+  if (file->path.dentry && file->path.dentry->inode &&
+      file->path.dentry->inode->type == INODE_DIR)
+    return -EISDIR;
+  if (!file->ops || !file->ops->write) return -EBADF;
+  return file->ops->write(file, buf, count);
 }
