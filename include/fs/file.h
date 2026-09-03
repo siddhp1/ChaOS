@@ -179,8 +179,7 @@ void fd_table_close_all(struct task* task);
  *
  * @param[in,out] dest Task receiving the copied descriptors.
  * @param[in] src Task whose descriptors are copied.
- * @return 0 on success, or -1 if either task is NULL or the destination table
- * is not empty.
+ * @return 0 on success, or -1 if either task is NULL.
  */
 int fd_table_copy(struct task* dest, struct task* src);
 

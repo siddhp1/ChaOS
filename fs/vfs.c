@@ -6,6 +6,12 @@
 #include "kernel/string.h"
 #include "mm/heap.h"
 
+/**
+ * @file
+ * @brief Core VFS object lifetime, pathname lookup, and I/O dispatch.
+ */
+
+/** Globally mounted root; its initial reference is retained for kernel life. */
 static struct mount* vfs_root_mount;
 
 struct inode* inode_alloc(void) {

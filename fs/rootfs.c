@@ -1,42 +1,76 @@
+#include "fs/rootfs.h"
+
 #include <stddef.h>
 
 #include "fs/file.h"
-#include "fs/rootfs.h"
 #include "fs/vfs.h"
 #include "kernel/errno.h"
 #include "kernel/string.h"
 
-// Forward declaration
+/**
+ * @file
+ * @brief Built-in, read-only filesystem used as the VFS root.
+ */
+
+/**
+ * @brief Looks up one child and returns a newly allocated dentry.
+ * @param[in] dir Rootfs directory inode to search.
+ * @param[in] name NUL-terminated child name.
+ * @param[out] out Receives an owned dentry, or NULL on failure.
+ * @return 0 on success, or `-EINVAL`, `-ENOTDIR`, `-EIO`, `-ENOMEM`, or
+ * `-ENOENT`.
+ */
 static int rootfs_lookup(struct inode* dir, const char* name,
                          struct dentry** out);
+
+/**
+ * @brief Reads static node data from the open file's current position.
+ * @param[in,out] file Open rootfs file whose position is advanced.
+ * @param[out] buf Buffer receiving at most @p count bytes.
+ * @param[in] count Maximum number of bytes to read.
+ * @return Bytes read, zero at EOF, or `-EINVAL`, `-EIO`, or `-EISDIR`.
+ */
 static long rootfs_read(struct file* file, void* buf, size_t count);
+
+/**
+ * @brief Creates the rootfs superblock and root dentry for a mount.
+ * @param[in,out] mount Newly allocated mount to populate.
+ * @return 0 on success, `-EINVAL` for a NULL mount, or `-ENOMEM` on failure.
+ */
 static int rootfs_mount(struct mount* mount);
 
+/** Directory operations shared by all rootfs directories. */
 static const struct inode_ops rootfs_dir_inode_ops = {
     .lookup = rootfs_lookup,
 };
 
+/** Read-only file operations shared by all rootfs regular files. */
 static const struct file_ops rootfs_file_ops = {
     .read = rootfs_read,
     .write = NULL,
     .release = NULL,
 };
 
-// Rootfs data
+/** Contents of the built-in demonstration file. */
 static const char hello_data[] = "hello from vfs\n";
 
-// Rootfs-specific node type
+/** Immutable backing node from which VFS inodes and dentries are created. */
 struct rootfs_node {
+  /** Borrowed, NUL-terminated entry name. */
   const char* name;
+  /** Type assigned to generated inodes. */
   enum inode_type type;
-
+  /** Borrowed regular-file contents, or NULL for a directory. */
   const void* data;
+  /** Regular-file size in bytes. */
   size_t size;
-
+  /** Borrowed array of directory children. */
   struct rootfs_node* children;
+  /** Number of entries in the child array. */
   size_t child_count;
 };
 
+/** Children exposed directly beneath the root directory. */
 static struct rootfs_node root_children[] = {
     {
         .name = "hello.txt",
@@ -64,6 +98,7 @@ static struct rootfs_node root_children[] = {
     },
 };
 
+/** Static backing node for `/`. */
 static struct rootfs_node root_node = {
     .name = "",
     .type = INODE_DIR,
@@ -73,6 +108,11 @@ static struct rootfs_node root_node = {
     .child_count = sizeof(root_children) / sizeof(root_children[0]),
 };
 
+/**
+ * @brief Creates an inode backed by a static rootfs node.
+ * @param[in] node Node that must outlive the inode.
+ * @return Caller-owned inode, or NULL for invalid input or allocation failure.
+ */
 static struct inode* rootfs_make_inode(struct rootfs_node* node) {
   if (!node) return NULL;
 
@@ -97,6 +137,13 @@ static struct inode* rootfs_make_inode(struct rootfs_node* node) {
   return inode;
 }
 
+/**
+ * @brief Creates a dentry and inode for a static rootfs node.
+ * @param[in] name Name copied into the dentry.
+ * @param[in] parent Parent retained by the new dentry; may be NULL.
+ * @param[in] node Node that must outlive the generated inode.
+ * @return Caller-owned dentry, or NULL on invalid input or allocation failure.
+ */
 static struct dentry* rootfs_make_dentry(const char* name,
                                          struct dentry* parent,
                                          struct rootfs_node* node) {
