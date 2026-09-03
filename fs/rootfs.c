@@ -114,10 +114,14 @@ static struct rootfs_node root_node = {
  * @return Caller-owned inode, or NULL for invalid input or allocation failure.
  */
 static struct inode* rootfs_make_inode(struct rootfs_node* node) {
-  if (!node) return NULL;
+  if (!node) {
+    return NULL;
+  }
 
   struct inode* inode = inode_alloc();
-  if (!inode) return NULL;
+  if (!inode) {
+    return NULL;
+  }
 
   inode->type = node->type;
   inode->size = node->size;
@@ -147,10 +151,14 @@ static struct inode* rootfs_make_inode(struct rootfs_node* node) {
 static struct dentry* rootfs_make_dentry(const char* name,
                                          struct dentry* parent,
                                          struct rootfs_node* node) {
-  if (!name || !node) return NULL;
+  if (!name || !node) {
+    return NULL;
+  }
 
   struct dentry* dentry = dentry_alloc();
-  if (!dentry) return NULL;
+  if (!dentry) {
+    return NULL;
+  }
 
   strncpy(dentry->name, name, VFS_NAME_MAX);
   dentry->name[VFS_NAME_MAX] = '\0';
@@ -167,24 +175,34 @@ static struct dentry* rootfs_make_dentry(const char* name,
 
 static int rootfs_lookup(struct inode* dir, const char* name,
                          struct dentry** out) {
-  if (!out) return -EINVAL;
+  if (!out) {
+    return -EINVAL;
+  }
 
   // Ensure caller doesn't receive a stale pointer on failure
   *out = NULL;
 
-  if (!dir || !name) return -EINVAL;
+  if (!dir || !name) {
+    return -EINVAL;
+  }
 
-  if (dir->type != INODE_DIR) return -ENOTDIR;
+  if (dir->type != INODE_DIR) {
+    return -ENOTDIR;
+  }
 
   struct rootfs_node* node = (struct rootfs_node*)dir->data;
-  if (!node) return -EIO;
+  if (!node) {
+    return -EIO;
+  }
 
   for (size_t i = 0; i < node->child_count; ++i) {
     struct rootfs_node* child = &node->children[i];
 
     if (strcmp(child->name, name) == 0) {
       struct dentry* dentry = rootfs_make_dentry(name, NULL, child);
-      if (!dentry) return -ENOMEM;
+      if (!dentry) {
+        return -ENOMEM;
+      }
 
       *out = dentry;
       return 0;
@@ -195,21 +213,33 @@ static int rootfs_lookup(struct inode* dir, const char* name,
 }
 
 static long rootfs_read(struct file* file, void* buf, size_t count) {
-  if (!file || !buf) return -EINVAL;
+  if (!file || !buf) {
+    return -EINVAL;
+  }
 
   struct dentry* dentry = file->path.dentry;
-  if (!dentry || !dentry->inode) return -EIO;
+  if (!dentry || !dentry->inode) {
+    return -EIO;
+  }
 
   struct inode* inode = dentry->inode;
-  if (inode->type != INODE_REG) return -EISDIR;
+  if (inode->type != INODE_REG) {
+    return -EISDIR;
+  }
 
   struct rootfs_node* node = (struct rootfs_node*)inode->data;
-  if (!node || (!node->data && node->size != 0)) return -EIO;
+  if (!node || (!node->data && node->size != 0)) {
+    return -EIO;
+  }
 
-  if (file->position >= node->size) return 0;
+  if (file->position >= node->size) {
+    return 0;
+  }
 
   size_t remaining = node->size - file->position;
-  if (count > remaining) count = remaining;
+  if (count > remaining) {
+    count = remaining;
+  }
 
   memcpy(buf, (const char*)node->data + file->position, count);
   file->position += count;
@@ -218,10 +248,14 @@ static long rootfs_read(struct file* file, void* buf, size_t count) {
 }
 
 static int rootfs_mount(struct mount* mount) {
-  if (!mount) return -EINVAL;
+  if (!mount) {
+    return -EINVAL;
+  }
 
   struct superblock* sb = superblock_alloc();
-  if (!sb) return -ENOMEM;
+  if (!sb) {
+    return -ENOMEM;
+  }
 
   struct dentry* root = rootfs_make_dentry("/", NULL, &root_node);
   if (!root) {

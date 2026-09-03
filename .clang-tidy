@@ -11,6 +11,7 @@ Checks: >
   -bugprone-unsafe-functions
   -clang-analyzer-cplusplus*,
   -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -misc-no-recursion,
   -readability-identifier-length,
   -readability-magic-numbers
 
