@@ -1,7 +1,14 @@
 #include "fs/file.h"
 
+#include <stdint.h>
+
 #include "kernel/task.h"
 #include "mm/heap.h"
+
+/**
+ * @file
+ * @brief Reference-counted open-file and descriptor-table implementation.
+ */
 
 struct file* file_alloc(const struct file_ops* ops, uint32_t flags,
                         void* data) {
@@ -11,7 +18,7 @@ struct file* file_alloc(const struct file_ops* ops, uint32_t flags,
   if (!file) return NULL;
 
   file->refcount = 1;
-  // Position zeroed
+  // Position field is zeroed by allocator
   file->flags = flags;
   file->data = data;
   file->ops = ops;
@@ -31,18 +38,18 @@ void file_unref(struct file* file) {
   file->refcount--;
   if (file->refcount != 0) return;
 
-  // Release underlying resource
+  // Release underlying resource and free structure once refcount = 0
   if (file->ops && file->ops->release) {
     file->ops->release(file);
   }
-
-  // Free memory once refcount = 0
+  path_unref(&file->path);
   kfree(file);
 }
 
 int fd_install(struct task* task, struct file* file) {
   if (!task || !file) return -1;
 
+  // Find first available index in the fd table
   for (int fd = 0; fd < MAX_FDS; ++fd) {
     if (task->fd_table[fd] == NULL) {
       task->fd_table[fd] = file;
@@ -66,6 +73,7 @@ int fd_install_at(struct task* task, struct file* file, int fd) {
 int fd_install_ref(struct task* task, struct file* file) {
   if (!task || !file) return -1;
 
+  // Find first available index in the fd table
   for (int fd = 0; fd < MAX_FDS; ++fd) {
     if (task->fd_table[fd] == NULL) {
       file_ref(file);
@@ -124,7 +132,7 @@ int fd_table_copy(struct task* dest, struct task* src) {
     if (!file) continue;
 
     file_ref(file);
-    dest->fd_table[fd] = file;
+    dest->fd_table[fd] = file;  // Overwrites the destination table entry
   }
 
   return 0;
