@@ -1,0 +1,19 @@
+name: Check
+
+on: pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Build Docker image
+        run: docker compose build
+
+      - name: Build kernel
+        run: docker compose run --rm -T dev make
+
+      - name: Build documentation
+        run: docker compose run --rm -T dev make docs
