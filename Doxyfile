@@ -1031,6 +1031,7 @@ WARN_LOGFILE           =
 
 INPUT                  = docs \
                          arch \
+                         fs \
                          include \
                          kernel \
                          mm \

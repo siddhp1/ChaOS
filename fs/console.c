@@ -1,22 +1,24 @@
 #include "fs/console.h"
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "drivers/uart.h"
 #include "fs/file.h"
 
+/**
+ * @file
+ * @brief UART-backed console files and process standard-I/O setup.
+ */
+
+/**
+ * @brief Operations table shared by all console files.
+ */
 static const struct file_ops console_ops = {
     .read = console_read, .write = console_write, .release = NULL};
 
-static struct file console_file = {.refcount = 1,
-                                   .flags = 0,
-                                   .position = 0,
-                                   .ops = &console_ops,
-                                   .data = NULL};
-
-// TODO: Consider removing
 struct file* console_file_open(int flags) {
-  return file_alloc(&console_ops, flags, &console_file);
+  return file_alloc(&console_ops, (uint32_t)flags, NULL);
 }
 
 long console_read(struct file* file, void* buf, size_t len) {
@@ -25,13 +27,19 @@ long console_read(struct file* file, void* buf, size_t len) {
   char* kbuf = (char*)buf;
   size_t count = 0;
 
-  if (!buf) return -1;
-  if (len == 0) return 0;
+  if (len == 0) {
+    return 0;
+  }
+  if (!buf) {
+    return -1;
+  }
 
   while (count < len) {
     char c;
 
-    if (uart_read(&c, 1) != 1) break;
+    if (uart_read(&c, 1) != 1) {
+      break;
+    }
 
     if (c == '\r' || c == '\n') {
       kbuf[count++] = '\n';
@@ -39,6 +47,7 @@ long console_read(struct file* file, void* buf, size_t len) {
       break;
     }
 
+    // Remove the previous input character and erase its echoed character
     if (c == '\b' || c == 127) {
       if (count > 0) {
         count--;
@@ -58,10 +67,14 @@ long console_read(struct file* file, void* buf, size_t len) {
 long console_write(struct file* file, const void* buf, size_t len) {
   (void)file;
 
-  if (!buf) return -1;
-  if (len == 0) return 0;
+  if (len == 0) {
+    return 0;
+  }
+  if (!buf) {
+    return -1;
+  }
 
-  return uart_write((const char*)buf, len);
+  return uart_write((const char*)buf, (long)len);
 }
 
 int process_stdio_init(struct task* task) {
@@ -69,41 +82,34 @@ int process_stdio_init(struct task* task) {
     return -1;
   }
 
-  struct file* file;
-
-  file = file_alloc(&console_ops, 0, &console_file);
-  if (!file) {
-    goto fail;
+  // Fail if there are existing fds
+  for (int fd = 0; fd < 3; ++fd) {
+    if (fd_get(task, fd)) {
+      return -1;
+    }
   }
 
-  if (fd_install_at(task, file, 0) < 0) {
-    file_unref(file);
-    goto fail;
-  }
+  int installed = 0;
 
-  file = file_alloc(&console_ops, 0, &console_file);
-  if (!file) {
-    goto fail;
-  }
+  for (int fd = 0; fd < 3; ++fd) {
+    struct file* file = console_file_open(0);
+    if (!file) {
+      goto fail;
+    }
 
-  if (fd_install_at(task, file, 1) < 0) {
-    file_unref(file);
-    goto fail;
-  }
-
-  file = file_alloc(&console_ops, 0, &console_file);
-  if (!file) {
-    goto fail;
-  }
-
-  if (fd_install_at(task, file, 2) < 0) {
-    file_unref(file);
-    goto fail;
+    if (fd_install_at(task, file, fd) < 0) {
+      file_unref(file);
+      goto fail;
+    }
+    installed++;
   }
 
   return 0;
 
 fail:
-  fd_table_close_all(task);
+  // Roll back only the descriptors installed by this call
+  while (installed > 0) {
+    fd_close(task, --installed);
+  }
   return -1;
 }
