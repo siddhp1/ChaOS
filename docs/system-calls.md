@@ -35,12 +35,6 @@ with no userspace `errno` translation.
 | 10 | `dup` | `long dup(int old_fd)` | Implemented |
 | 11 | `dup2` | `long dup2(int old_fd, int new_fd)` | Implemented |
 
-`SYS_MAX` is 12. Slot 2 is in range but uncallable because it has no registered
-handler.
-
-<!-- DOC-GAP(implementation): Either implement and register SYS_GETPID, including
-     a userspace wrapper, or remove the reserved ABI number until it is needed. -->
-
 ## File descriptors and I/O
 
 Each task has 32 descriptors. Duplicated and inherited descriptors share the
@@ -56,10 +50,6 @@ One call performs one VFS read of at most 128 bytes, so larger requests return a
 short result. Console reads block for input, echo characters, normalize CR/LF to
 `\n`, and process backspace/delete. EOF returns zero and VFS errors pass through.
 
-<!-- DOC-GAP(implementation): Decide whether reads larger than the staging buffer
-     should remain intentionally short or loop like writes. A failed final
-     copy_to_user currently consumes backend data and advances file position. -->
-
 ### `write`
 
 `write(fd, buf, len)` accepts any writable descriptor and sends input through
@@ -72,12 +62,6 @@ errors pass through. Console output may block, and LF is emitted as CRLF.
 `open(path, flags, mode)` accepts a path of at most 127 bytes. Only
 `/dev/console` is recognized, and the new file uses the lowest free descriptor.
 `flags` is stored but not interpreted; `mode` is ignored. Failures return `-1`.
-
-Rootfs and the `execve` initramfs are not connected to this handler.
-
-<!-- DOC-GAP(implementation): Add a generic VFS open path that resolves rootfs
-     files, selects inode file operations, transfers path ownership into the
-     open-file object, and defines supported flags, access modes, and errors. -->
 
 ### `close`
 
@@ -100,21 +84,11 @@ the new descriptor or `-1` on error.
 are limited to 127 bytes; one leading slash is accepted. The kernel builds a new
 address space and resets the saved PC and stack. Open descriptors are preserved.
 
-Success continues in the new image; failure returns `-1`. `argv` is ignored and
-there is no environment argument.
-
-<!-- DOC-GAP(implementation): Add argv/environment transfer, executable metadata
-     and permission checks, and a defined executable format. Confirm complete
-     failure atomicity before documenting execve as POSIX-like. -->
-
 ### `fork`
 
 `fork()` eagerly copies the parent's address space and trap frame. File
 descriptors are copied by reference, so file positions remain shared. The child
 returns zero and the parent receives the child PID; setup failures return `-1`.
-
-<!-- DOC-GAP(rationale): Explain the eager full-address-space copy and contrast
-     it with the future copy-on-write/ASID design. -->
 
 ### `exit`
 
@@ -128,24 +102,6 @@ not return.
 positive PID selects one child. A zombie is destroyed, its PID is returned, and
 its status is copied when `status` is non-NULL. A positive non-child PID returns
 `-1`; otherwise the parent blocks.
-
-There is no nonblocking mode. Waiting for any child with no children, or using
-zero or a PID below `-1`, can block indefinitely.
-
-<!-- DOC-GAP(implementation): Define and enforce accepted PID selectors, return
-     immediately when no eligible children exist, and validate/copy the status
-     destination before irreversibly reaping the child. Add options only if
-     nonblocking or stopped-child behavior is desired. -->
-
-## Userspace wrappers
-
-The small libc wraps every registered syscall using the same `svc` helper. It
-returns raw kernel values and does not set `errno`; `execve` discards `argv`.
-Kernel and userspace syscall numbers are maintained separately.
-
-<!-- DOC-GAP(implementation): Generate or share syscall-number definitions
-     between kernel and userspace, then add an ABI-level test that detects table
-     and wrapper drift. -->
 
 ## References
 
