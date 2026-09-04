@@ -72,7 +72,7 @@ void destroy_task(struct task* task) {
   }
 
   if (task->mode == TASK_MODE_USER) {
-    // Redundant, fds are closed at task exit
+    // Safety check, fds should be closed at task exit
     fd_table_close_all(task);
 
     if (task->ttbr0) {
