@@ -1,7 +1,9 @@
 #include "kernel/task.h"
 
 #include <stddef.h>
+#include <stdint.h>
 
+#include "fs/file.h"
 #include "kernel/initramfs.h"
 #include "kernel/irq.h"
 #include "kernel/irq_frame.h"
@@ -69,9 +71,14 @@ void destroy_task(struct task* task) {
     }
   }
 
-  if (task->mode == TASK_MODE_USER && task->ttbr0) {
-    free_user_pgd(task->ttbr0);
-    task->ttbr0 = 0;
+  if (task->mode == TASK_MODE_USER) {
+    // Safety check, fds should be closed at task exit
+    fd_table_close_all(task);
+
+    if (task->ttbr0) {
+      free_user_pgd(task->ttbr0);
+      task->ttbr0 = 0;
+    }
   }
 
   if (task->stack) {
@@ -87,9 +94,9 @@ void destroy_task(struct task* task) {
 }
 
 void task_exit(struct task* task, int32_t exit_status) {
-  if (!task) {
-    return;
-  }
+  if (!task) return;
+
+  fd_table_close_all(task);
 
   task->exit_status = exit_status;
 

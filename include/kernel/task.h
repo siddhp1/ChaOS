@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include "fs/file.h"
 #include "kernel/scheduler/wait.h"
 
 // Number of hardware timer interrupts before scheduling
@@ -44,6 +45,9 @@ struct task {
 
   struct task* next;
   struct wait_queue wait_child_queue;
+
+  // Per-process fd table
+  struct file* fd_table[MAX_FDS];
 };
 
 void* alloc_stack(void);
