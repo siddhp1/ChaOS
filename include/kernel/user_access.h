@@ -2,10 +2,12 @@
 #define USER_ACCESS_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 bool user_range_ok(uintptr_t addr, uint64_t len);
 long copy_from_user(void* dst, const void* src, uint64_t len);
 long copy_to_user(void* dst, const void* src, uint64_t len);
+long copy_user_cstr(char* dst, const char* user_src, size_t max_len);
 
 #endif

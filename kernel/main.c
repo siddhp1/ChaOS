@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include "drivers/uart.h"
+#include "fs/vfs.h"
 #include "kernel/cpu.h"
 #include "kernel/initramfs.h"
 #include "kernel/irq.h"
@@ -65,6 +66,9 @@ void kernel_entry(void) {
 
   memory_init();
   printk("Memory initialized\n");
+
+  if (vfs_init() < 0) panic("Failed to initialize VFS");
+  printk("VFS initialized\n");
 
   printk("Testing L3 page allocation...\n");
 

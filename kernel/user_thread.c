@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "fs/console.h"
 #include "kernel/kthread.h"
 #include "kernel/panic.h"
 #include "kernel/pid.h"
@@ -62,6 +63,11 @@ struct task* create_user_process(void* code, size_t code_size) {
   t->arg = NULL;
   t->stack = (uint64_t)kstack;
   t->time_slice = DEFAULT_TIME_SLICE;
+
+  if (process_stdio_init(t) < 0) {
+    destroy_task(t);
+    return NULL;
+  }
 
   create_irq_frame(t, kstack_top, (uintptr_t)setup_user_mode, USER_STACK_TOP);
 
